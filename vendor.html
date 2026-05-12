@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Panel - Supply Chain</title>
+    <style>
+        body{ font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
+        .container{ max-width: 500px; margin: auto; }
+        .card{ background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        h2{ color: #1a2a6c; text-align: center; margin-top: 0; }
+        input{ width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn{ width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn-blue{ background: #1a2a6c; color: white; }
+        .btn-green{ background: #27ae60; color: white; margin-top: 10px; box-shadow: 0 4px 0 #1e8449; }
+        .btn-green:active{ box-shadow: none; transform: translateY(4px); }
+        .btn-logout{ background: #eee; color: #333; margin-top: 20px; font-size: 14px; }
+        
+        .order-card{ border: 1px solid #e0e0e0; padding: 15px; background: #fff; border-radius: 12px; margin-top: 15px; }
+        .order-header{ display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .item-name{ font-size: 18px; font-weight: bold; color: #1a2a6c; }
+        .qty-badge{ background: #f39c12; color: white; padding: 4px 10px; border-radius: 20px; font-size: 14px; }
+        .details{ font-size: 14px; color: #555; margin-top: 10px; line-height: 1.6; margin-bottom: 15px; }
+        
+        /* Status Styles */
+        .status-box { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; }
+        .waiting { background: #fff3e0; color: #ef6c00; border: 1px solid #ffcc80; }
+        .received { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+        #vDashboard{ display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- লগইন সেকশন -->
+    <div class="card" id="loginBox">
+        <h2>🚚 ভেন্ডর লগইন</h2>
+        <p style="text-align:center; color:#666;">মোবাইল নম্বর দিয়ে আপনার ড্যাশবোর্ডে প্রবেশ করুন</p>
+        <input type="text" id="vAuthMobile" placeholder="01XXXXXXXXX" maxlength="11">
+        <button class="btn btn-blue" onclick="vendorLogin()">প্রবেশ করুন</button>
+    </div>
+
+    <!-- ড্যাশবোর্ড সেকশন -->
+    <div id="vDashboard">
+        <div class="card" style="background: #1a2a6c; color: white; border-radius: 15px;">
+            <h3 id="vWelcome" style="margin:0;">স্বাগতম!</h3>
+            <p id="vPhone" style="margin:5px 0 0 0; opacity: 0.8; font-size: 14px;"></p>
+        </div>
+
+        <h3 style="margin: 20px 0 10px 5px; color: #333;">📦 আমার ডেলিভারি লিস্ট</h3>
+        <div id="vendorOrders"></div>
+
+        <button class="btn btn-logout" onclick="logout()">লগআউট</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = { 
+        databaseURL: "https://my-supply-chain-7a286-default-rtdb.firebaseio.com" 
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- লগইন লজিক ---
+    window.vendorLogin = async () => {
+        const mobile = document.getElementById('vAuthMobile').value;
+        if(mobile.length < 11) return alert("সঠিক মোবাইল নম্বর দিন");
+
+        const vSnap = await get(ref(db, 'vendors/' + mobile));
+        if(vSnap.exists()){
+            localStorage.setItem('vendorMobile', mobile);
+            showDashboard(vSnap.val().name, mobile);
+        } else {
+            alert("দুঃখিত, আপনি নিবন্ধিত ভেন্ডর নন।");
+        }
+    };
+
+    function showDashboard(name, mobile) {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('vDashboard').style.display = 'block';
+        document.getElementById('vWelcome').innerText = "স্বাগতম, " + name;
+        document.getElementById('vPhone').innerText = "মোবাইল: " + mobile;
+        loadVendorOrders(mobile);
+    }
+
+    // --- অর্ডার লোড করার মেইন লজিক ---
+    function loadVendorOrders(vMobile) {
+        onValue(ref(db, 'grouped_orders'), snap => {
+            const container = document.getElementById('vendorOrders');
+            container.innerHTML = "";
+            
+            if(!snap.exists()) {
+                container.innerHTML = "<p style='text-align:center; color:#888;'>বর্তমানে আপনার কোন অর্ডার নেই।</p>";
+                return;
+            }
+
+            let hasOrder = false;
+            snap.forEach(child => {
+                const order = child.val();
+                const orderKey = child.key;
+
+                order.breakdown.forEach((b, index) => {
+                    if(b.vKey === vMobile) {
+                        hasOrder = true;
+                        
+                        const isSent = b.deliveryStatus === "Delivered"; // ভেন্ডর কি পাঠিয়েছে?
+                        const isReceived = b.receiveStatus === "Received"; // অফিসার কি রিসিভ করেছে?
+
+                        let actionUI = "";
+
+                        if (isReceived) {
+                            // কন্ডিশন ৩: অফিসার মাল পেয়ে গেছেন
+                            actionUI = `<div class="status-box received">✅ Order Received by Officer</div>`;
+                        } else if (isSent) {
+                            // কন্ডিশন ২: ভেন্ডর পাঠিয়েছে কিন্তু কনফার্মেশন আসেনি
+                            actionUI = `<div class="status-box waiting">⏳ Order Sent, Waiting for confirmation...</div>`;
+                        } else {
+                            // কন্ডিশন ১: এখনো পাঠানো হয়নি, বাটন দেখাবে
+                            actionUI = `<button class="btn btn-green" onclick="markOrderSent('${orderKey}', ${index})">🚚 Mark as Order Sent</button>`;
+                        }
+
+                        container.innerHTML += `
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <span class="item-name">${order.itemName}</span>
+                                    <span class="qty-badge">${b.qty} pc</span>
+                                </div>
+                                <div class="details">
+                                    📍 <b>ডেলিভারি পয়েন্ট:</b> ${b.pName}<br>
+                                    📅 <b>ডেডলাইন:</b> ${order.deadline}
+                                </div>
+                                ${actionUI}
+                            </div>
+                        `;
+                    }
+                });
+            });
+
+            if(!hasOrder) container.innerHTML = "<p style='text-align:center; color:#888;'>আপনার জন্য কোন অর্ডার বরাদ্দ নেই।</p>";
+        });
+    }
+
+    // --- "Order Sent" বাটন লজিক ---
+    window.markOrderSent = (orderKey, breakdownIndex) => {
+        if(confirm("আপনি কি নিশ্চিত যে মালামাল পাঠিয়ে দিয়েছেন?")){
+            const updates = {};
+            // শুধু এই স্পেসিফিক ব্রেকডাউন আইটেমের ডেলিভারি স্ট্যাটাস আপডেট
+            updates[`grouped_orders/${orderKey}/breakdown/${breakdownIndex}/deliveryStatus`] = "Delivered";
+            updates[`grouped_orders/${orderKey}/breakdown/${breakdownIndex}/sentAt`] = new Date().toLocaleString();
+
+            update(ref(db), updates).then(() => {
+                alert("অর্ডার 'Sent' হিসেবে চিহ্নিত হয়েছে। এখন অফিসারের কনফার্মেশনের জন্য অপেক্ষা করুন।");
+            }).catch(err => alert("Error: " + err.message));
+        }
+    };
+
+    // --- লগআউট ---
+    window.logout = () => {
+        localStorage.removeItem('vendorMobile');
+        location.reload();
+    };
+
+    // অটো লগইন চেক
+    window.onload = () => {
+        const savedMobile = localStorage.getItem('vendorMobile');
+        if(savedMobile) {
+            get(ref(db, 'vendors/' + savedMobile)).then(snap => {
+                if(snap.exists()) showDashboard(snap.val().name, savedMobile);
+            });
+        }
+    };
+
+</script>
+</body>
+</html>
