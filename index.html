@@ -52,7 +52,6 @@
 </div>
 
 <div id="data-mgmt" class="container active">
-    <!-- Point Management -->
     <div class="card">
         <h2>📍 পয়েন্ট অফিসার অনবোর্ডিং</h2>
         <input type="hidden" id="pEditKey"> 
@@ -65,7 +64,6 @@
             <table id="pointTable"><thead><tr><th>নাম</th><th>মোবাইল</th><th>ঠিকানা</th><th>অ্যাকশন</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
-    <!-- Vendor Management -->
     <div class="card">
         <h2>🚚 ভেন্ডর অনবোর্ডিং</h2>
         <input type="hidden" id="vEditKey"> 
@@ -217,33 +215,83 @@ onValue(ref(db, '/'), snap => {
     processReports();
 });
 
-// --- Management ---
+// --- Management Functions with Edit ---
 window.savePoint = () => {
     const n = document.getElementById('pName').value, m = document.getElementById('pMobile').value, a = document.getElementById('pAddress').value;
-    if(n && m) set(ref(db,'points/'+m), {name:n, mobile:m, address:a}).then(() => alert("Saved"));
+    const editKey = document.getElementById('pEditKey').value;
+    if(n && m) {
+        set(ref(db,'points/'+m), {name:n, mobile:m, address:a}).then(() => {
+            alert("পয়েন্ট ডেটা সেভ হয়েছে");
+            document.getElementById('pEditKey').value = "";
+            document.getElementById('pName').value = ""; document.getElementById('pMobile').value = ""; document.getElementById('pAddress').value = "";
+            document.getElementById('btnSavePoint').innerText = "পয়েন্ট সেভ করুন";
+        });
+    }
 };
+
+window.editPoint = (k) => {
+    const p = fullData.points[k];
+    document.getElementById('pEditKey').value = k;
+    document.getElementById('pName').value = p.name;
+    document.getElementById('pMobile').value = p.mobile;
+    document.getElementById('pAddress').value = p.address;
+    document.getElementById('btnSavePoint').innerText = "আপডেট করুন";
+    window.scrollTo(0,0);
+};
+
 function updatePointList(pts){
     const tbody = document.querySelector('#pointTable tbody'), sel = document.getElementById('pSelect'), f = document.getElementById('pFilter');
     tbody.innerHTML = ""; sel.innerHTML = '<option value="">পয়েন্ট বেছে নিন</option>';
     if(!pts) return;
     Object.entries(pts).forEach(([k,v]) => {
         pointMap[k] = v;
-        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td>${v.address}</td><td><button class="btn btn-red" onclick="deleteData('points','${k}')">Del</button></td></tr>`;
+        tbody.innerHTML += `<tr>
+            <td>${v.name}</td><td>${v.mobile}</td><td>${v.address}</td>
+            <td>
+                <button class="btn btn-orange" onclick="editPoint('${k}')">Edit</button>
+                <button class="btn btn-red" onclick="deleteData('points','${k}')">Del</button>
+            </td>
+        </tr>`;
         sel.innerHTML += `<option value="${k}">${v.name}</option>`;
         if(![...f.options].some(o => o.value === k)) f.innerHTML += `<option value="${k}">${v.name}</option>`;
     });
 }
+
 window.saveVendor = () => {
     const n = document.getElementById('vName').value, m = document.getElementById('vMobile').value;
-    if(n && m) set(ref(db,'vendors/'+m), {name:n, mobile:m}).then(() => alert("Saved"));
+    const editKey = document.getElementById('vEditKey').value;
+    if(n && m) {
+        set(ref(db,'vendors/'+m), {name:n, mobile:m}).then(() => {
+            alert("ভেন্ডর ডেটা সেভ হয়েছে");
+            document.getElementById('vEditKey').value = "";
+            document.getElementById('vName').value = ""; document.getElementById('vMobile').value = "";
+            document.getElementById('btnSaveVendor').innerText = "ভেন্ডর সেভ করুন";
+        });
+    }
 };
+
+window.editVendor = (k) => {
+    const v = fullData.vendors[k];
+    document.getElementById('vEditKey').value = k;
+    document.getElementById('vName').value = v.name;
+    document.getElementById('vMobile').value = v.mobile;
+    document.getElementById('btnSaveVendor').innerText = "আপডেট করুন";
+    window.scrollTo(0, 400);
+};
+
 function updateVendorList(vns){
     const tbody = document.querySelector('#vendorTable tbody'), sel = document.getElementById('vSelect');
     tbody.innerHTML = ""; sel.innerHTML = '<option value="">ভেন্ডর বেছে নিন</option>';
     if(!vns) return;
     Object.entries(vns).forEach(([k,v]) => {
         vendorMap[k] = v.name;
-        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td><button class="btn btn-red" onclick="deleteData('vendors','${k}')">Del</button></td></tr>`;
+        tbody.innerHTML += `<tr>
+            <td>${v.name}</td><td>${v.mobile}</td>
+            <td>
+                <button class="btn btn-orange" onclick="editVendor('${k}')">Edit</button>
+                <button class="btn btn-red" onclick="deleteData('vendors','${k}')">Del</button>
+            </td>
+        </tr>`;
         sel.innerHTML += `<option value="${k}">${v.name}</option>`;
     });
 }
@@ -281,7 +329,6 @@ window.finalSubmitOrder = () => {
     };
     if(item && orderQueue.length > 0 && details.orderId) {
         const data = { itemName:item, totalDemand:t, details: details, deadline:document.getElementById('vDate').value, status:document.getElementById('orderStatus').value, timestamp: new Date().toLocaleString('bn-BD'), breakdown: orderQueue };
-        
         const orderRef = updateKey ? ref(db, 'grouped_orders/' + updateKey) : push(ref(db, 'grouped_orders'));
         set(orderRef, data).then(() => { 
             alert(updateKey ? "অর্ডার আপডেট হয়েছে" : "অর্ডার কনফার্ম হয়েছে"); 
@@ -377,7 +424,7 @@ function processReports() {
     Object.values(orders).forEach(ord => {
         const prog = ord.details?.program || "Default";
         const key = prog + "_" + ord.itemName;
-        if(!summary[key]) summary[key] = {prog: prog, item: ord.itemName, demand:0, recv:0, dist:0};
+        if(!summary[key]) summary[key] = {prog: prog, item: ord.itemName, demand:0, recv:0};
         summary[key].demand += ord.totalDemand;
         ord.breakdown.forEach(b => { if(b.receiveStatus === "Received") summary[key].recv += b.qty; });
     });
