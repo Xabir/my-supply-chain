@@ -24,6 +24,7 @@
         .btn-green{ background:#27ae60; color:white; padding:10px 20px; }
         .btn-red{ background:#e74c3c; color:white; padding:5px 10px; font-size:12px; }
         .btn-orange{ background:#f39c12; color:white; padding:5px 10px; font-size:12px; margin-right: 5px; }
+        .btn-gray{ background:#7f8c8d; color:white; padding:5px 10px; font-size:12px; }
         
         .btn-download{ background:#2c3e50; color:white; margin-top:15px; display:inline-flex; align-items:center; gap:8px; padding:10px 15px; }
         
@@ -39,7 +40,6 @@
         .report-section { display: none; }
         .report-section.active { display: block; }
         .on-process-card { border-left: 5px solid #f39c12; background: #fffaf0; padding: 15px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
         .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #e2e8f0; }
     </style>
 </head>
@@ -52,10 +52,11 @@
 </div>
 
 <div id="data-mgmt" class="container active">
-    <!-- Point Management Card -->
+    <!-- Point Management -->
     <div class="card">
         <h2>📍 পয়েন্ট অফিসার অনবোর্ডিং</h2>
-        <input type="hidden" id="pEditKey"> <input type="text" id="pName" placeholder="পয়েন্টের নাম"/>
+        <input type="hidden" id="pEditKey"> 
+        <input type="text" id="pName" placeholder="পয়েন্টের নাম"/>
         <input type="text" id="pMobile" placeholder="মোবাইল নম্বর"/>
         <textarea id="pAddress" placeholder="ঠিকানা"></textarea>
         <button class="btn btn-blue" id="btnSavePoint" onclick="savePoint()">পয়েন্ট সেভ করুন</button>
@@ -64,10 +65,11 @@
             <table id="pointTable"><thead><tr><th>নাম</th><th>মোবাইল</th><th>ঠিকানা</th><th>অ্যাকশন</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
-    <!-- Vendor Management Card -->
+    <!-- Vendor Management -->
     <div class="card">
         <h2>🚚 ভেন্ডর অনবোর্ডিং</h2>
-        <input type="hidden" id="vEditKey"> <input type="text" id="vName" placeholder="ভেন্ডরের নাম"/>
+        <input type="hidden" id="vEditKey"> 
+        <input type="text" id="vName" placeholder="ভেন্ডরের নাম"/>
         <input type="text" id="vMobile" placeholder="ভেন্ডরের মোবাইল"/>
         <button class="btn btn-blue" id="btnSaveVendor" style="background:#6a1b9a;" onclick="saveVendor()">ভেন্ডর সেভ করুন</button>
         <button class="btn" style="margin-top:10px;background:#eee;" onclick="toggleSection('vendorList')">📋 ভেন্ডর লিস্ট</button>
@@ -80,6 +82,7 @@
 <div id="order-mgmt" class="container">
     <div class="card">
         <h2>🏭 মাল্টি-ভেন্ডর ওয়ার্ক অর্ডার</h2>
+        <input type="hidden" id="editOrderFirebaseKey">
         <div style="background:#e8f5e9; padding:15px; border-radius:8px; display: flex; gap: 10px;">
             <div style="flex:2;"><label>আইটেম</label><input type="text" id="orderItem" placeholder="যেমন: ক্যাপ"/></div>
             <div style="flex:1;"><label>মোট ডিমান্ড</label><input type="number" id="totalDemand" oninput="updateRemaining()"/></div>
@@ -87,13 +90,12 @@
 
         <h3 style="margin-top: 15px; font-size: 16px;">Details:</h3>
         <div class="details-grid">
-            <!-- Updated Order ID field (Manual Entry) -->
-            <div style="grid-column: span 2;"><label>Order ID</label><input type="text" id="detOrderId" placeholder="অর্ডার আইডি লিখুন (যেমন: ORD-101)" style="font-weight:bold; color:#1a2a6c;"/></div>
+            <div style="grid-column: span 2;"><label>Order ID</label><input type="text" id="detOrderId" placeholder="ORD-101"/></div>
             <div><label>Unit</label><input type="text" id="detUnit" placeholder="যেমন: Kg/Pcs"/></div>
             <div><label>Brand Name</label><input type="text" id="detBrand" placeholder="ব্র্যান্ডের নাম"/></div>
             <div><label>Program</label><input type="text" id="detProgram" placeholder="প্রোগ্রাম নাম"/></div>
             <div><label>Piece/Set</label><input type="text" id="detPieceSet" placeholder="পরিমাণ টাইপ"/></div>
-            <div style="grid-column: span 2;"><label>Specifications</label><textarea id="detSpecs" placeholder="পণ্যর বিস্তারিত গুণাগুণ..." style="height:60px;"></textarea></div>
+            <div style="grid-column: span 2;"><label>Specifications</label><textarea id="detSpecs" placeholder="পণ্যর বিস্তারিত..." style="height:60px;"></textarea></div>
         </div>
 
         <div id="remainingStatus" class="status-box">অবশিষ্ট ডিমান্ড: ০</div>
@@ -118,7 +120,7 @@
             <div style="flex:1;"><label>ডেলিভারি ডেডলাইন</label><input type="date" id="vDate"/></div>
             <div style="flex:1;"><label>স্ট্যাটাস</label><select id="orderStatus"><option value="Running">Running</option><option value="Completed">Completed</option></select></div>
         </div>
-        <button class="btn btn-blue" style="margin-top:20px; background:#27ae60;" onclick="finalSubmitOrder()">অর্ডার কনফার্ম করুন</button>
+        <button class="btn btn-blue" id="submitBtn" style="margin-top:20px; background:#27ae60;" onclick="finalSubmitOrder()">অর্ডার কনফার্ম করুন</button>
     </div>
 
     <div class="card">
@@ -130,8 +132,8 @@
                         <th>তারিখ</th>
                         <th>অর্ডার আইডি</th>
                         <th>আইটেম</th>
-                        <th>মোট ডিমান্ড</th>
-                        <th>ডেডলাইন</th>
+                        <th>প্রোগ্রাম</th>
+                        <th>ডিমান্ড</th>
                         <th>স্ট্যাটাস</th>
                         <th>অ্যাকশন</th>
                     </tr>
@@ -155,7 +157,7 @@
             <h3>⏳ On-Process Orders</h3>
             <div id="vOnProcess"></div>
             <h3 style="margin-top:20px;">✅ Completed Orders</h3>
-            <table id="vCompTable"><thead><tr><th>তারিখ</th><th>ভেন্ডর</th><th>আইটেম</th><th>পয়েন্ট</th><th>পরিমাণ</th></tr></thead><tbody></tbody></table>
+            <table id="vCompTable"><thead><tr><th>অর্ডার আইডি</th><th>ভেন্ডর</th><th>আইটেম</th><th>পয়েন্ট</th><th>পরিমাণ</th></tr></thead><tbody></tbody></table>
             <button class="btn btn-download" onclick="downloadReport('vCompTable', 'Vendor_Report')">📥 Download Vendor Report</button>
         </div>
 
@@ -163,15 +165,15 @@
             <label>পয়েন্ট অফিসার ফিল্টার করুন:</label>
             <select id="pFilter" onchange="renderPointReport()"><option value="all">সব পয়েন্ট</option></select>
             <table id="pDistTable" style="margin-top:15px;">
-                <thead><tr style="background:#e8f4fd;"><th>পয়েন্ট</th><th>প্রাপক</th><th>আইটেম</th><th>পরিমাণ</th><th>তারিখ</th></tr></thead>
+                <thead><tr style="background:#e8f4fd;"><th>পয়েন্ট</th><th>প্রোগ্রাম</th><th>প্রাপক</th><th>আইটেম</th><th>পরিমাণ</th></tr></thead>
                 <tbody></tbody>
             </table>
             <button class="btn btn-download" onclick="downloadReport('pDistTable', 'Point_Report')">📥 Download Point Report</button>
         </div>
 
         <div id="oRep" class="report-section">
-            <h3>🌐 Total Inventory Summary</h3>
-            <table id="overallTable"><thead><tr><th>আইটেম</th><th>মোট ডিমান্ড</th><th>রিসিভড</th><th>ডিস্ট্রিবিউটেড</th><th>স্টক</th></tr></thead><tbody></tbody></table>
+            <h3>🌐 Overall Inventory Summary (Program Wise)</h3>
+            <table id="overallTable"><thead><tr><th>প্রোগ্রাম</th><th>আইটেম</th><th>মোট ডিমান্ড</th><th>রিসিভড</th><th>স্টক (In Point)</th></tr></thead><tbody></tbody></table>
             <button class="btn btn-download" onclick="downloadReport('overallTable', 'Overall_Inventory')">📥 Download Inventory Report</button>
         </div>
     </div>
@@ -179,7 +181,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = { databaseURL: "https://my-supply-chain-7a286-default-rtdb.firebaseio.com" };
 const app = initializeApp(firebaseConfig);
@@ -215,26 +217,10 @@ onValue(ref(db, '/'), snap => {
     processReports();
 });
 
-// --- Point Management ---
+// --- Management ---
 window.savePoint = () => {
     const n = document.getElementById('pName').value, m = document.getElementById('pMobile').value, a = document.getElementById('pAddress').value;
-    const oldKey = document.getElementById('pEditKey').value;
-    if(n && m) {
-        if(oldKey && oldKey !== m) remove(ref(db, 'points/' + oldKey));
-        set(ref(db,'points/'+m), {name:n, mobile:m, address:a}).then(() => {
-            alert("পয়েন্ট সেভ হয়েছে");
-            document.getElementById('pEditKey').value = "";
-            ['pName','pMobile','pAddress'].forEach(id => document.getElementById(id).value = "");
-        });
-    }
-};
-window.editPoint = (k) => {
-    const p = pointMap[k];
-    document.getElementById('pName').value = p.name;
-    document.getElementById('pMobile').value = p.mobile;
-    document.getElementById('pAddress').value = p.address;
-    document.getElementById('pEditKey').value = k;
-    window.scrollTo(0,0);
+    if(n && m) set(ref(db,'points/'+m), {name:n, mobile:m, address:a}).then(() => alert("Saved"));
 };
 function updatePointList(pts){
     const tbody = document.querySelector('#pointTable tbody'), sel = document.getElementById('pSelect'), f = document.getElementById('pFilter');
@@ -242,31 +228,14 @@ function updatePointList(pts){
     if(!pts) return;
     Object.entries(pts).forEach(([k,v]) => {
         pointMap[k] = v;
-        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td>${v.address}</td><td><button class="btn btn-orange" onclick="editPoint('${k}')">Edit</button><button class="btn btn-red" onclick="deleteData('points','${k}')">Del</button></td></tr>`;
+        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td>${v.address}</td><td><button class="btn btn-red" onclick="deleteData('points','${k}')">Del</button></td></tr>`;
         sel.innerHTML += `<option value="${k}">${v.name}</option>`;
         if(![...f.options].some(o => o.value === k)) f.innerHTML += `<option value="${k}">${v.name}</option>`;
     });
 }
-
-// --- Vendor Management ---
 window.saveVendor = () => {
     const n = document.getElementById('vName').value, m = document.getElementById('vMobile').value;
-    const oldKey = document.getElementById('vEditKey').value;
-    if(n && m) {
-        if(oldKey && oldKey !== m) remove(ref(db, 'vendors/' + oldKey));
-        set(ref(db,'vendors/'+m), {name:n, mobile:m}).then(() => {
-            alert("ভেন্ডর সেভ হয়েছে");
-            document.getElementById('vEditKey').value = "";
-            ['vName','vMobile'].forEach(id => document.getElementById(id).value = "");
-        });
-    }
-};
-window.editVendor = (k) => {
-    const v = fullData.vendors[k];
-    document.getElementById('vName').value = v.name;
-    document.getElementById('vMobile').value = v.mobile;
-    document.getElementById('vEditKey').value = k;
-    window.scrollTo(0,0);
+    if(n && m) set(ref(db,'vendors/'+m), {name:n, mobile:m}).then(() => alert("Saved"));
 };
 function updateVendorList(vns){
     const tbody = document.querySelector('#vendorTable tbody'), sel = document.getElementById('vSelect');
@@ -274,7 +243,7 @@ function updateVendorList(vns){
     if(!vns) return;
     Object.entries(vns).forEach(([k,v]) => {
         vendorMap[k] = v.name;
-        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td><button class="btn btn-orange" onclick="editVendor('${k}')">Edit</button><button class="btn btn-red" onclick="deleteData('vendors','${k}')">Del</button></td></tr>`;
+        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td><button class="btn btn-red" onclick="deleteData('vendors','${k}')">Del</button></td></tr>`;
         sel.innerHTML += `<option value="${k}">${v.name}</option>`;
     });
 }
@@ -301,6 +270,7 @@ function renderQueue(){
 
 window.finalSubmitOrder = () => {
     const item = document.getElementById('orderItem').value, t = parseFloat(document.getElementById('totalDemand').value);
+    const updateKey = document.getElementById('editOrderFirebaseKey').value;
     const details = { 
         orderId: document.getElementById('detOrderId').value, 
         unit: document.getElementById('detUnit').value, 
@@ -311,28 +281,65 @@ window.finalSubmitOrder = () => {
     };
     if(item && orderQueue.length > 0 && details.orderId) {
         const data = { itemName:item, totalDemand:t, details: details, deadline:document.getElementById('vDate').value, status:document.getElementById('orderStatus').value, timestamp: new Date().toLocaleString('bn-BD'), breakdown: orderQueue };
-        push(ref(db, 'grouped_orders'), data).then(() => { 
-            alert("অর্ডার কনফার্ম হয়েছে"); 
-            orderQueue=[]; renderQueue(); 
-            ['orderItem','totalDemand','detOrderId','detUnit','detBrand','detProgram','detPieceSet','detSpecs','vDate'].forEach(id => document.getElementById(id).value = "");
-            updateRemaining();
+        
+        const orderRef = updateKey ? ref(db, 'grouped_orders/' + updateKey) : push(ref(db, 'grouped_orders'));
+        set(orderRef, data).then(() => { 
+            alert(updateKey ? "অর্ডার আপডেট হয়েছে" : "অর্ডার কনফার্ম হয়েছে"); 
+            clearOrderForm();
         });
-    } else { alert("আইটেম, অর্ডার আইডি এবং কমপক্ষে ১টি ভেন্ডর কিউ নিশ্চিত করুন"); }
+    } else { alert("আইটেম, অর্ডার আইডি এবং ভেন্ডর কিউ নিশ্চিত করুন"); }
 };
 
-// --- History ---
+function clearOrderForm(){
+    orderQueue=[]; renderQueue();
+    document.getElementById('editOrderFirebaseKey').value = "";
+    document.getElementById('submitBtn').innerText = "অর্ডার কনফার্ম করুন";
+    ['orderItem','totalDemand','detOrderId','detUnit','detBrand','detProgram','detPieceSet','detSpecs','vDate'].forEach(id => document.getElementById(id).value = "");
+    updateRemaining();
+}
+
+window.editOrder = (k) => {
+    const v = fullData.grouped_orders[k];
+    document.getElementById('editOrderFirebaseKey').value = k;
+    document.getElementById('orderItem').value = v.itemName;
+    document.getElementById('totalDemand').value = v.totalDemand;
+    document.getElementById('detOrderId').value = v.details.orderId;
+    document.getElementById('detUnit').value = v.details.unit;
+    document.getElementById('detBrand').value = v.details.brand;
+    document.getElementById('detProgram').value = v.details.program;
+    document.getElementById('detPieceSet').value = v.details.pieceSet;
+    document.getElementById('detSpecs').value = v.details.specs;
+    document.getElementById('vDate').value = v.deadline;
+    document.getElementById('orderStatus').value = v.status;
+    orderQueue = [...v.breakdown];
+    renderQueue(); updateRemaining();
+    document.getElementById('submitBtn').innerText = "Update Order";
+    window.scrollTo(0,0);
+};
+
+window.cancelOrder = (k) => {
+    if(confirm("আপনি কি নিশ্চিত এই অর্ডারটি বাতিল করতে চান? এটি ভেন্ডর পোর্টাল থেকেও মুছে যাবে।")) {
+        remove(ref(db, 'grouped_orders/' + k));
+    }
+};
+
+// --- History & Reports ---
 function updateOrderHistory(orders) {
     const tbody = document.querySelector('#orderHistoryTable tbody'); tbody.innerHTML = "";
     if(!orders) return;
     Object.entries(orders).reverse().forEach(([k, v]) => {
         tbody.innerHTML += `<tr>
-            <td>${v.timestamp || 'N/A'}</td>
-            <td style="font-weight:bold; color:#1a2a6c;">#${v.details?.orderId || '0000'}</td>
+            <td>${v.timestamp || ''}</td>
+            <td style="font-weight:bold;">#${v.details?.orderId || ''}</td>
             <td>${v.itemName}</td>
+            <td>${v.details?.program || ''}</td>
             <td>${v.totalDemand}</td>
-            <td>${v.deadline}</td>
             <td style="color:${v.status==='Running'?'#3498db':'#27ae60'}; font-weight:bold">${v.status}</td>
-            <td><button class="btn btn-red" onclick="deleteData('grouped_orders','${k}')">Del</button></td>
+            <td>
+                <button class="btn btn-orange" onclick="editOrder('${k}')">Edit</button>
+                <button class="btn btn-gray" onclick="cancelOrder('${k}')">Cancel</button>
+                <button class="btn btn-red" onclick="deleteData('grouped_orders','${k}')">Del</button>
+            </td>
         </tr>`;
     });
 }
@@ -342,12 +349,13 @@ function processReports() {
     const dists = fullData.distributions || {};
     const vOn = document.getElementById('vOnProcess'), vComp = document.querySelector('#vCompTable tbody');
     vOn.innerHTML = ""; vComp.innerHTML = "";
+    
     Object.values(orders).forEach(ord => {
         ord.breakdown.forEach(b => {
             if(b.receiveStatus === "Received") {
-                vComp.innerHTML += `<tr><td>${ord.deadline}</td><td>${b.vName}</td><td>${ord.itemName}</td><td>${b.pName}</td><td>${b.qty}</td></tr>`;
+                vComp.innerHTML += `<tr><td>#${ord.details?.orderId}</td><td>${b.vName}</td><td>${ord.itemName}</td><td>${b.pName}</td><td>${b.qty}</td></tr>`;
             } else {
-                vOn.innerHTML += `<div class="on-process-card"><div><b>${b.vName}</b> → ${b.pName}<br><small>${ord.itemName} (${b.qty} pc) - ID: ${ord.details?.orderId || ''}</small></div><div>⏳ Pending</div></div>`;
+                vOn.innerHTML += `<div class="on-process-card"><div><b>${b.vName}</b> → ${b.pName}<br><small>${ord.itemName} (Prog: ${ord.details?.program || ''})</small></div><div>⏳ Pending</div></div>`;
             }
         });
     });
@@ -358,8 +366,7 @@ function processReports() {
         Object.entries(dists).forEach(([mobile, items]) => {
             if(filter !== "all" && filter !== mobile) return;
             Object.values(items).forEach(d => {
-                const receiver = d.proprok || d.recipient || 'সাধারণ';
-                pTbody.innerHTML += `<tr><td>${pointMap[mobile]?.name || 'N/A'}</td><td>${receiver}</td><td>${d.item}</td><td>${d.qty}</td><td>${d.date || ''}</td></tr>`;
+                pTbody.innerHTML += `<tr><td>${pointMap[mobile]?.name || 'N/A'}</td><td>${d.program || 'N/A'}</td><td>${d.proprok || d.recipient || 'সাধারণ'}</td><td>${d.item}</td><td>${d.qty}</td></tr>`;
             });
         });
     };
@@ -368,17 +375,19 @@ function processReports() {
     const oTbody = document.querySelector('#overallTable tbody'); oTbody.innerHTML = "";
     let summary = {};
     Object.values(orders).forEach(ord => {
-        if(!summary[ord.itemName]) summary[ord.itemName] = {demand:0, recv:0, dist:0};
-        summary[ord.itemName].demand += ord.totalDemand;
-        ord.breakdown.forEach(b => { if(b.receiveStatus === "Received") summary[ord.itemName].recv += b.qty; });
+        const prog = ord.details?.program || "Default";
+        const key = prog + "_" + ord.itemName;
+        if(!summary[key]) summary[key] = {prog: prog, item: ord.itemName, demand:0, recv:0, dist:0};
+        summary[key].demand += ord.totalDemand;
+        ord.breakdown.forEach(b => { if(b.receiveStatus === "Received") summary[key].recv += b.qty; });
     });
-    Object.values(dists).forEach(p => Object.values(p).forEach(d => { if(summary[d.item]) summary[d.item].dist += parseFloat(d.qty); }));
-    Object.entries(summary).forEach(([name, s]) => {
-        oTbody.innerHTML += `<tr><td>${name}</td><td>${s.demand}</td><td>${s.recv}</td><td>${s.dist}</td><td><b>${s.recv - s.dist}</b></td></tr>`;
+    
+    Object.entries(summary).forEach(([key, s]) => {
+        oTbody.innerHTML += `<tr><td>${s.prog}</td><td>${s.item}</td><td>${s.demand}</td><td>${s.recv}</td><td><b>${s.recv}</b></td></tr>`;
     });
 }
 
-window.deleteData = (p,k) => confirm("আপনি কি নিশ্চিত এটি মুছতে চান?") && remove(ref(db,`${p}/${k}`));
+window.deleteData = (p,k) => confirm("নিশ্চিত মুছতে চান?") && remove(ref(db,`${p}/${k}`));
 </script>
 </body>
 </html>
