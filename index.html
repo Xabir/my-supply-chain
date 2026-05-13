@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Jabir's Supply Chain - Master Admin</title>
     
-    <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
@@ -24,6 +23,7 @@
         .btn-blue{ background:#1a2a6c; color:white; width:100%; padding:14px; font-size:16px; }
         .btn-green{ background:#27ae60; color:white; padding:10px 20px; }
         .btn-red{ background:#e74c3c; color:white; padding:5px 10px; font-size:12px; }
+        .btn-orange{ background:#f39c12; color:white; padding:5px 10px; font-size:12px; margin-right: 5px; }
         
         .btn-download{ background:#2c3e50; color:white; margin-top:15px; display:inline-flex; align-items:center; gap:8px; padding:10px 15px; }
         
@@ -40,7 +40,6 @@
         .report-section.active { display: block; }
         .on-process-card { border-left: 5px solid #f39c12; background: #fffaf0; padding: 15px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        /* Details Grid Style */
         .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #e2e8f0; }
     </style>
 </head>
@@ -52,11 +51,10 @@
     <button class="tab-btn" onclick="openTab(event,'reports')">৩. রিপোর্টস</button>
 </div>
 
-<!-- ১. ডেটা ম্যানেজমেন্ট -->
 <div id="data-mgmt" class="container active">
     <div class="card">
         <h2>📍 পয়েন্ট অফিসার অনবোর্ডিং</h2>
-        <input type="text" id="pName" placeholder="পয়েন্টের নাম"/>
+        <input type="hidden" id="pEditKey"> <input type="text" id="pName" placeholder="পয়েন্টের নাম"/>
         <input type="text" id="pMobile" placeholder="মোবাইল নম্বর"/>
         <textarea id="pAddress" placeholder="ঠিকানা"></textarea>
         <button class="btn btn-blue" id="btnSavePoint" onclick="savePoint()">পয়েন্ট সেভ করুন</button>
@@ -67,7 +65,7 @@
     </div>
     <div class="card">
         <h2>🚚 ভেন্ডর অনবোর্ডিং</h2>
-        <input type="text" id="vName" placeholder="ভেন্ডরের নাম"/>
+        <input type="hidden" id="vEditKey"> <input type="text" id="vName" placeholder="ভেন্ডরের নাম"/>
         <input type="text" id="vMobile" placeholder="ভেন্ডরের মোবাইল"/>
         <button class="btn btn-blue" id="btnSaveVendor" style="background:#6a1b9a;" onclick="saveVendor()">ভেন্ডর সেভ করুন</button>
         <button class="btn" style="margin-top:10px;background:#eee;" onclick="toggleSection('vendorList')">📋 ভেন্ডর লিস্ট</button>
@@ -77,7 +75,6 @@
     </div>
 </div>
 
-<!-- ২. ওয়ার্ক অর্ডার -->
 <div id="order-mgmt" class="container">
     <div class="card">
         <h2>🏭 মাল্টি-ভেন্ডর ওয়ার্ক অর্ডার</h2>
@@ -86,9 +83,9 @@
             <div style="flex:1;"><label>মোট ডিমান্ড</label><input type="number" id="totalDemand" oninput="updateRemaining()"/></div>
         </div>
 
-        <!-- Details: New 5 Textboxes Added Here -->
         <h3 style="margin-top: 15px; font-size: 16px;">Details:</h3>
         <div class="details-grid">
+            <div style="grid-column: span 2;"><label>Order ID (Auto)</label><input type="text" id="detOrderId" readonly style="background:#eee; font-weight:bold; color:#1a2a6c;"/></div>
             <div><label>Unit</label><input type="text" id="detUnit" placeholder="যেমন: Kg/Pcs"/></div>
             <div><label>Brand Name</label><input type="text" id="detBrand" placeholder="ব্র্যান্ডের নাম"/></div>
             <div><label>Program</label><input type="text" id="detProgram" placeholder="প্রোগ্রাম নাম"/></div>
@@ -108,7 +105,7 @@
             <textarea id="vLoc" readonly placeholder="অ্যাড্রেস..." style="height:50px; background:#f0f0f0; margin-top:10px;"></textarea>
         </div>
 
-        <h3>📋 ডিস্ট্রিবিউশন লিস্ট</h3>
+        <h3>📋 ডিস্ট্রিবিউশন কিউ (Queue)</h3>
         <table id="tempQueueTable">
             <thead><tr><th>ভেন্ডর</th><th>পয়েন্ট</th><th>পরিমাণ</th><th>অ্যাকশন</th></tr></thead>
             <tbody></tbody>
@@ -120,9 +117,28 @@
         </div>
         <button class="btn btn-blue" style="margin-top:20px; background:#27ae60;" onclick="finalSubmitOrder()">অর্ডার কনফার্ম করুন</button>
     </div>
+
+    <div class="card">
+        <h2>📜 ওয়ার্ক অর্ডার হিস্ট্রি</h2>
+        <div style="overflow-x: auto;">
+            <table id="orderHistoryTable">
+                <thead>
+                    <tr>
+                        <th>তারিখ</th>
+                        <th>অর্ডার আইডি</th>
+                        <th>আইটেম</th>
+                        <th>মোট ডিমান্ড</th>
+                        <th>ডেডলাইন</th>
+                        <th>স্ট্যাটাস</th>
+                        <th>অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<!-- ৩. রিপোর্টস -->
 <div id="reports" class="container">
     <div class="card">
         <h2>📊 বিজনেস রিপোর্ট বোর্ড</h2>
@@ -137,7 +153,7 @@
             <div id="vOnProcess"></div>
             <h3 style="margin-top:20px;">✅ Completed Orders</h3>
             <table id="vCompTable"><thead><tr><th>তারিখ</th><th>ভেন্ডর</th><th>আইটেম</th><th>পয়েন্ট</th><th>পরিমাণ</th></tr></thead><tbody></tbody></table>
-            <button class="btn btn-download" onclick="downloadReport('vCompTable', 'Vendor_Completed_Report')">📥 Download Vendor Report</button>
+            <button class="btn btn-download" onclick="downloadReport('vCompTable', 'Vendor_Report')">📥 Download Vendor Report</button>
         </div>
 
         <div id="pRep" class="report-section">
@@ -147,13 +163,13 @@
                 <thead><tr style="background:#e8f4fd;"><th>পয়েন্ট</th><th>প্রাপক</th><th>আইটেম</th><th>পরিমাণ</th><th>তারিখ</th></tr></thead>
                 <tbody></tbody>
             </table>
-            <button class="btn btn-download" onclick="downloadReport('pDistTable', 'Point_Officer_Report')">📥 Download Point Report</button>
+            <button class="btn btn-download" onclick="downloadReport('pDistTable', 'Point_Report')">📥 Download Point Report</button>
         </div>
 
         <div id="oRep" class="report-section">
             <h3>🌐 Total Inventory Summary</h3>
             <table id="overallTable"><thead><tr><th>আইটেম</th><th>মোট ডিমান্ড</th><th>রিসিভড</th><th>ডিস্ট্রিবিউটেড</th><th>স্টক</th></tr></thead><tbody></tbody></table>
-            <button class="btn btn-download" onclick="downloadReport('overallTable', 'Overall_Inventory_Report')">📥 Download Inventory Report</button>
+            <button class="btn btn-download" onclick="downloadReport('overallTable', 'Overall_Inventory')">📥 Download Inventory Report</button>
         </div>
     </div>
 </div>
@@ -192,23 +208,70 @@ onValue(ref(db, '/'), snap => {
     fullData = snap.val() || {};
     updatePointList(fullData.points);
     updateVendorList(fullData.vendors);
+    updateOrderHistory(fullData.grouped_orders);
+    generateNextOrderId(fullData.grouped_orders); // অটো আইডি তৈরি
     processReports();
 });
 
+// --- Order ID Generator ---
+function generateNextOrderId(orders) {
+    let count = orders ? Object.keys(orders).length : 0;
+    let nextId = (count + 1).toString().padStart(4, '0');
+    document.getElementById('detOrderId').value = nextId;
+}
+
+// --- Point Management ---
+window.savePoint = () => {
+    const n = document.getElementById('pName').value, m = document.getElementById('pMobile').value, a = document.getElementById('pAddress').value;
+    const oldKey = document.getElementById('pEditKey').value;
+    if(n && m) {
+        if(oldKey && oldKey !== m) remove(ref(db, 'points/' + oldKey));
+        set(ref(db,'points/'+m), {name:n, mobile:m, address:a}).then(() => {
+            alert("পয়েন্ট সেভ হয়েছে");
+            document.getElementById('pEditKey').value = "";
+            ['pName','pMobile','pAddress'].forEach(id => document.getElementById(id).value = "");
+        });
+    }
+};
+window.editPoint = (k) => {
+    const p = pointMap[k];
+    document.getElementById('pName').value = p.name;
+    document.getElementById('pMobile').value = p.mobile;
+    document.getElementById('pAddress').value = p.address;
+    document.getElementById('pEditKey').value = k;
+    window.scrollTo(0,0);
+};
 function updatePointList(pts){
     const tbody = document.querySelector('#pointTable tbody'), sel = document.getElementById('pSelect'), f = document.getElementById('pFilter');
     tbody.innerHTML = ""; sel.innerHTML = '<option value="">পয়েন্ট বেছে নিন</option>';
     if(!pts) return;
     Object.entries(pts).forEach(([k,v]) => {
         pointMap[k] = v;
-        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td>${v.address}</td><td><button class="btn btn-red" onclick="deleteData('points','${k}')">Del</button></td></tr>`;
+        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td>${v.address}</td><td><button class="btn btn-orange" onclick="editPoint('${k}')">Edit</button><button class="btn btn-red" onclick="deleteData('points','${k}')">Del</button></td></tr>`;
         sel.innerHTML += `<option value="${k}">${v.name}</option>`;
         if(![...f.options].some(o => o.value === k)) f.innerHTML += `<option value="${k}">${v.name}</option>`;
     });
 }
-window.savePoint = () => {
-    const n = document.getElementById('pName').value, m = document.getElementById('pMobile').value, a = document.getElementById('pAddress').value;
-    if(n && m) set(ref(db,'points/'+m), {name:n, mobile:m, address:a}).then(()=>alert("Saved"));
+
+// --- Vendor Management ---
+window.saveVendor = () => {
+    const n = document.getElementById('vName').value, m = document.getElementById('vMobile').value;
+    const oldKey = document.getElementById('vEditKey').value;
+    if(n && m) {
+        if(oldKey && oldKey !== m) remove(ref(db, 'vendors/' + oldKey));
+        set(ref(db,'vendors/'+m), {name:n, mobile:m}).then(() => {
+            alert("ভেন্ডর সেভ হয়েছে");
+            document.getElementById('vEditKey').value = "";
+            ['vName','vMobile'].forEach(id => document.getElementById(id).value = "");
+        });
+    }
+};
+window.editVendor = (k) => {
+    const v = fullData.vendors[k];
+    document.getElementById('vName').value = v.name;
+    document.getElementById('vMobile').value = v.mobile;
+    document.getElementById('vEditKey').value = k;
+    window.scrollTo(0,0);
 };
 function updateVendorList(vns){
     const tbody = document.querySelector('#vendorTable tbody'), sel = document.getElementById('vSelect');
@@ -216,24 +279,20 @@ function updateVendorList(vns){
     if(!vns) return;
     Object.entries(vns).forEach(([k,v]) => {
         vendorMap[k] = v.name;
-        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td><button class="btn btn-red" onclick="deleteData('vendors','${k}')">Del</button></td></tr>`;
+        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td><button class="btn btn-orange" onclick="editVendor('${k}')">Edit</button><button class="btn btn-red" onclick="deleteData('vendors','${k}')">Del</button></td></tr>`;
         sel.innerHTML += `<option value="${k}">${v.name}</option>`;
     });
 }
-window.saveVendor = () => {
-    const n = document.getElementById('vName').value, m = document.getElementById('vMobile').value;
-    if(n && m) set(ref(db,'vendors/'+m), {name:n, mobile:m}).then(()=>alert("Saved"));
-};
 
+// --- Order Logic ---
 window.autoFillAddress = () => { const k=document.getElementById('pSelect').value; document.getElementById('vLoc').value=pointMap[k]?pointMap[k].address:""; };
 window.updateRemaining = () => {
     const t = parseFloat(document.getElementById('totalDemand').value)||0;
     const d = orderQueue.reduce((s,i)=>s+i.qty, 0);
-    document.getElementById('remainingStatus').innerText = `অবশিষ্ট: ${t-d}`;
+    document.getElementById('remainingStatus').innerText = `অবশিষ্ট ডিমান্ড: ${t-d}`;
 };
 window.addToOrderQueue = () => {
-    const t = parseFloat(document.getElementById('totalDemand').value)||0;
-    const q = parseFloat(document.getElementById('splitQty').value)||0;
+    const t = parseFloat(document.getElementById('totalDemand').value)||0, q = parseFloat(document.getElementById('splitQty').value)||0;
     const vK = document.getElementById('vSelect').value, pK = document.getElementById('pSelect').value;
     if(t && vK && pK && q > 0) {
         orderQueue.push({ vKey:vK, vName:vendorMap[vK], pKey:pK, pName:pointMap[pK].name, qty:q });
@@ -247,47 +306,53 @@ function renderQueue(){
 
 window.finalSubmitOrder = () => {
     const item = document.getElementById('orderItem').value, t = parseFloat(document.getElementById('totalDemand').value);
-    
-    // Details Capture
-    const details = {
-        unit: document.getElementById('detUnit').value,
-        brand: document.getElementById('detBrand').value,
-        program: document.getElementById('detProgram').value,
-        pieceSet: document.getElementById('detPieceSet').value,
-        specs: document.getElementById('detSpecs').value
+    const details = { 
+        orderId: document.getElementById('detOrderId').value, 
+        unit: document.getElementById('detUnit').value, 
+        brand: document.getElementById('detBrand').value, 
+        program: document.getElementById('detProgram').value, 
+        pieceSet: document.getElementById('detPieceSet').value, 
+        specs: document.getElementById('detSpecs').value 
     };
-
     if(item && orderQueue.length > 0) {
-        const data = { 
-            itemName:item, 
-            totalDemand:t, 
-            details: details, // Saving new 5 fields
-            deadline:document.getElementById('vDate').value, 
-            status:document.getElementById('orderStatus').value, 
-            timestamp: new Date().toISOString(), 
-            breakdown: orderQueue 
-        };
+        const data = { itemName:item, totalDemand:t, details: details, deadline:document.getElementById('vDate').value, status:document.getElementById('orderStatus').value, timestamp: new Date().toLocaleString('bn-BD'), breakdown: orderQueue };
         push(ref(db, 'grouped_orders'), data).then(() => { 
-            alert("Order Confirmed"); 
+            alert("অর্ডার কনফার্ম হয়েছে"); 
             orderQueue=[]; renderQueue(); 
-            // Clear inputs
-            ['orderItem','totalDemand','detUnit','detBrand','detProgram','detPieceSet','detSpecs'].forEach(id => document.getElementById(id).value = "");
+            ['orderItem','totalDemand','detUnit','detBrand','detProgram','detPieceSet','detSpecs','vDate'].forEach(id => document.getElementById(id).value = "");
+            updateRemaining();
         });
-    } else { alert("আইটেম এবং ডিস্ট্রিবিউশন লিস্ট চেক করুন"); }
+    } else { alert("তথ্য চেক করুন"); }
 };
+
+// --- History ---
+function updateOrderHistory(orders) {
+    const tbody = document.querySelector('#orderHistoryTable tbody'); tbody.innerHTML = "";
+    if(!orders) return;
+    Object.entries(orders).reverse().forEach(([k, v]) => {
+        tbody.innerHTML += `<tr>
+            <td>${v.timestamp || 'N/A'}</td>
+            <td style="font-weight:bold; color:#1a2a6c;">#${v.details?.orderId || '0000'}</td>
+            <td>${v.itemName}</td>
+            <td>${v.totalDemand}</td>
+            <td>${v.deadline}</td>
+            <td style="color:${v.status==='Running'?'#3498db':'#27ae60'}; font-weight:bold">${v.status}</td>
+            <td><button class="btn btn-red" onclick="deleteData('grouped_orders','${k}')">Del</button></td>
+        </tr>`;
+    });
+}
 
 function processReports() {
     const orders = fullData.grouped_orders || {};
     const dists = fullData.distributions || {};
     const vOn = document.getElementById('vOnProcess'), vComp = document.querySelector('#vCompTable tbody');
     vOn.innerHTML = ""; vComp.innerHTML = "";
-    
     Object.values(orders).forEach(ord => {
         ord.breakdown.forEach(b => {
             if(b.receiveStatus === "Received") {
                 vComp.innerHTML += `<tr><td>${ord.deadline}</td><td>${b.vName}</td><td>${ord.itemName}</td><td>${b.pName}</td><td>${b.qty}</td></tr>`;
             } else {
-                vOn.innerHTML += `<div class="on-process-card"><div><b>${b.vName}</b> → ${b.pName}<br><small>${ord.itemName} (${b.qty} pc)</small></div><div>⏳ Pending</div></div>`;
+                vOn.innerHTML += `<div class="on-process-card"><div><b>${b.vName}</b> → ${b.pName}<br><small>${ord.itemName} (${b.qty} pc) - ID: ${ord.details?.orderId || ''}</small></div><div>⏳ Pending</div></div>`;
             }
         });
     });
@@ -318,7 +383,7 @@ function processReports() {
     });
 }
 
-window.deleteData = (p,k) => confirm("Delete?") && remove(ref(db,`${p}/${k}`));
+window.deleteData = (p,k) => confirm("আপনি কি নিশ্চিত এটি মুছতে চান?") && remove(ref(db,`${p}/${k}`));
 </script>
 </body>
 </html>
