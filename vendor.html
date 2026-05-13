@@ -10,22 +10,36 @@
         .card{ background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
         h2{ color: #1a2a6c; text-align: center; margin-top: 0; }
         input{ width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn{ width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
-        .btn-blue{ background: #1a2a6c; color: white; }
-        .btn-green{ background: #27ae60; color: white; margin-top: 10px; box-shadow: 0 4px 0 #1e8449; }
-        .btn-green:active{ box-shadow: none; transform: translateY(4px); }
-        .btn-logout{ background: #eee; color: #333; margin-top: 20px; font-size: 14px; }
+        .btn{ width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-blue{ background: #1a2a6c; color: white; width: 100%; padding: 14px; font-size: 16px; }
+        .btn-green{ background: #27ae60; color: white; flex: 1; font-size: 13px; }
+        .btn-orange{ background: #f39c12; color: white; flex: 1; font-size: 13px; }
+        .btn-logout{ background: #eee; color: #333; margin-top: 20px; width: 100%; font-size: 14px; }
         
-        .order-card{ border: 1px solid #e0e0e0; padding: 15px; background: #fff; border-radius: 12px; margin-top: 15px; }
-        .order-header{ display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-        .item-name{ font-size: 18px; font-weight: bold; color: #1a2a6c; }
-        .qty-badge{ background: #f39c12; color: white; padding: 4px 10px; border-radius: 20px; font-size: 14px; }
-        .details{ font-size: 14px; color: #555; margin-top: 10px; line-height: 1.6; margin-bottom: 15px; }
+        .order-group-card{ background: white; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #1a2a6c; cursor: pointer; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .order-group-card.new-order { border-left: 5px solid #3498db; background: #f0f7ff; }
         
-        /* Status Styles */
-        .status-box { padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; }
-        .waiting { background: #fff3e0; color: #ef6c00; border: 1px solid #ffcc80; }
-        .received { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .group-header{ padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .group-id{ font-weight: bold; color: #1a2a6c; font-size: 17px; }
+
+        .breakdown-section{ display: none; padding: 15px; background: #fff; border-top: 1px solid #eee; }
+        .breakdown-section.active { display: block; }
+
+        .admin-details { background: #eef2ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; border: 1px solid #c7d2fe; line-height: 1.5; }
+        
+        .point-card{ border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 10px; background: #fafafa; }
+        .point-name{ font-weight: bold; color: #333; display: block; margin-bottom: 8px; }
+        
+        .qty-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 12px; margin-bottom: 10px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #eee; text-align: center;}
+        .qty-row b { color: #1a2a6c; display: block; font-size: 14px; }
+
+        .waiting-status { background: #fff3e0; padding: 10px; border-radius: 6px; font-size: 13px; color: #e65100; margin-bottom: 10px; border: 1px solid #ffe0b2; text-align: center; font-weight: bold; }
+
+        .action-btns { display: flex; gap: 8px; margin-top: 10px; }
+        .partial-input-box { background: #fff9c4; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #fbc02d; display: none; }
+
+        .log-box { font-size: 11px; color: #666; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 5px; }
+        .new-badge { font-size: 10px; background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
 
         #vDashboard{ display: none; }
     </style>
@@ -33,22 +47,19 @@
 <body>
 
 <div class="container">
-    <!-- লগইন সেকশন -->
     <div class="card" id="loginBox">
         <h2>🚚 ভেন্ডর লগইন</h2>
-        <p style="text-align:center; color:#666;">মোবাইল নম্বর দিয়ে আপনার ড্যাশবোর্ডে প্রবেশ করুন</p>
-        <input type="text" id="vAuthMobile" placeholder="01XXXXXXXXX" maxlength="11">
+        <input type="text" id="vAuthMobile" placeholder="মোবাইল নম্বর" maxlength="11">
         <button class="btn btn-blue" onclick="vendorLogin()">প্রবেশ করুন</button>
     </div>
 
-    <!-- ড্যাশবোর্ড সেকশন -->
     <div id="vDashboard">
-        <div class="card" style="background: #1a2a6c; color: white; border-radius: 15px;">
+        <div class="card" style="background: #1a2a6c; color: white; border-radius: 15px; margin-bottom: 20px;">
             <h3 id="vWelcome" style="margin:0;">স্বাগতম!</h3>
             <p id="vPhone" style="margin:5px 0 0 0; opacity: 0.8; font-size: 14px;"></p>
         </div>
 
-        <h3 style="margin: 20px 0 10px 5px; color: #333;">📦 আমার ডেলিভারি লিস্ট</h3>
+        <h3 style="margin: 0 0 15px 5px; color: #333;">📦 আমার ওয়ার্ক অর্ডার সমূহ</h3>
         <div id="vendorOrders"></div>
 
         <button class="btn btn-logout" onclick="logout()">লগআউট</button>
@@ -59,24 +70,18 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = { 
-        databaseURL: "https://my-supply-chain-7a286-default-rtdb.firebaseio.com" 
-    };
+    const firebaseConfig = { databaseURL: "https://my-supply-chain-7a286-default-rtdb.firebaseio.com" };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // --- লগইন লজিক ---
     window.vendorLogin = async () => {
         const mobile = document.getElementById('vAuthMobile').value;
         if(mobile.length < 11) return alert("সঠিক মোবাইল নম্বর দিন");
-
         const vSnap = await get(ref(db, 'vendors/' + mobile));
         if(vSnap.exists()){
             localStorage.setItem('vendorMobile', mobile);
             showDashboard(vSnap.val().name, mobile);
-        } else {
-            alert("দুঃখিত, আপনি নিবন্ধিত ভেন্ডর নন।");
-        }
+        } else { alert("ভেন্ডর পাওয়া যায়নি"); }
     };
 
     function showDashboard(name, mobile) {
@@ -87,93 +92,152 @@
         loadVendorOrders(mobile);
     }
 
-    // --- অর্ডার লোড করার মেইন লজিক ---
+    window.toggleOrder = (orderKey) => {
+        const el = document.getElementById('details-' + orderKey);
+        el.classList.toggle('active');
+    };
+
     function loadVendorOrders(vMobile) {
         onValue(ref(db, 'grouped_orders'), snap => {
             const container = document.getElementById('vendorOrders');
             container.innerHTML = "";
-            
-            if(!snap.exists()) {
-                container.innerHTML = "<p style='text-align:center; color:#888;'>বর্তমানে আপনার কোন অর্ডার নেই।</p>";
-                return;
-            }
+            if(!snap.exists()) return;
 
-            let hasOrder = false;
+            let orderList = [];
             snap.forEach(child => {
-                const order = child.val();
-                const orderKey = child.key;
+                orderList.push({ key: child.key, data: child.val() });
+            });
+            orderList.reverse(); 
+
+            orderList.forEach(item => {
+                const order = item.data;
+                const orderKey = item.key;
+                const d = order.details || {};
+                const unitStr = d.unit || 'pc'; // Admin থেকে সেট করা ইউনিট
+                
+                let hasPart = false;
+                let isBrandNew = true; 
+                let breakdownsHTML = "";
 
                 order.breakdown.forEach((b, index) => {
                     if(b.vKey === vMobile) {
-                        hasOrder = true;
+                        hasPart = true;
+                        const totalReq = parseFloat(b.qty) || 0;
+                        const confirmedQty = parseFloat(b.sentQty) || 0; // অফিসার যা কনফার্ম করেছে
+                        const waitingQty = parseFloat(b.waitingQty) || 0; // ভেন্ডর যা পাঠিয়েছে
+                        const remaining = totalReq - confirmedQty - waitingQty;
                         
-                        const isSent = b.deliveryStatus === "Delivered"; // ভেন্ডর কি পাঠিয়েছে?
-                        const isReceived = b.receiveStatus === "Received"; // অফিসার কি রিসিভ করেছে?
+                        if(confirmedQty > 0 || waitingQty > 0) isBrandNew = false;
 
-                        let actionUI = "";
-
-                        if (isReceived) {
-                            // কন্ডিশন ৩: অফিসার মাল পেয়ে গেছেন
-                            actionUI = `<div class="status-box received">✅ Order Received by Officer</div>`;
-                        } else if (isSent) {
-                            // কন্ডিশন ২: ভেন্ডর পাঠিয়েছে কিন্তু কনফার্মেশন আসেনি
-                            actionUI = `<div class="status-box waiting">⏳ Order Sent, Waiting for confirmation...</div>`;
-                        } else {
-                            // কন্ডিশন ১: এখনো পাঠানো হয়নি, বাটন দেখাবে
-                            actionUI = `<button class="btn btn-green" onclick="markOrderSent('${orderKey}', ${index})">🚚 Mark as Order Sent</button>`;
+                        // হিস্ট্রি লগ (অফিসার কনফার্ম করার পর এখানে রিসিভড হিসেবে দেখাবে)
+                        let historyLog = "";
+                        if(b.deliveryLogs){
+                            historyLog = Object.values(b.deliveryLogs).reverse().map(l => 
+                                `<div>• ${l.date}: <b>${l.amount} ${unitStr}</b> Received ✅</div>`
+                            ).join('');
                         }
 
-                        container.innerHTML += `
-                            <div class="order-card">
-                                <div class="order-header">
-                                    <span class="item-name">${order.itemName}</span>
-                                    <span class="qty-badge">${b.qty} pc</span>
+                        breakdownsHTML += `
+                            <div class="point-card">
+                                <span class="point-name">📍 ${b.pName}</span>
+                                <div class="qty-row">
+                                    <div>ডিমান্ড<br><b>${totalReq} ${unitStr}</b></div>
+                                    <div>কনফার্মড<br><b style="color:green">${confirmedQty} ${unitStr}</b></div>
+                                    <div>বাকি<br><b style="color:red">${remaining} ${unitStr}</b></div>
                                 </div>
-                                <div class="details">
-                                    📍 <b>ডেলিভারি পয়েন্ট:</b> ${b.pName}<br>
-                                    📅 <b>ডেডলাইন:</b> ${order.deadline}
-                                </div>
-                                ${actionUI}
+                                
+                                ${waitingQty > 0 ? `
+                                    <div class="waiting-status">
+                                        ⏳ ${waitingQty} ${unitStr} Waiting for Confirmation
+                                    </div>
+                                ` : ''}
+
+                                ${remaining > 0 ? `
+                                    <div class="action-btns">
+                                        <button class="btn btn-green" onclick="event.stopPropagation(); shipOrder('${orderKey}', ${index}, ${remaining}, true, '${unitStr}')">Full Ship</button>
+                                        <button class="btn btn-orange" onclick="event.stopPropagation(); showPartialBox('${orderKey}_${index}')">Partial Ship</button>
+                                    </div>
+                                    <div id="box_${orderKey}_${index}" class="partial-input-box" onclick="event.stopPropagation()">
+                                        <input type="number" id="input_${orderKey}_${index}" placeholder="কত ${unitStr} পাঠাচ্ছেন?">
+                                        <button class="btn btn-blue" style="padding:8px" onclick="shipOrder('${orderKey}', ${index}, ${remaining}, false, '${unitStr}')">Confirm Partial</button>
+                                    </div>
+                                ` : (waitingQty === 0 ? `<div style="color:green; font-weight:bold; text-align:center; font-size:13px; margin-top:10px;">✅ All Deliveries Completed</div>` : '')}
+
+                                ${historyLog ? `<div class="log-box"><b>Delivery History:</b>${historyLog}</div>` : ''}
                             </div>
                         `;
                     }
                 });
-            });
 
-            if(!hasOrder) container.innerHTML = "<p style='text-align:center; color:#888;'>আপনার জন্য কোন অর্ডার বরাদ্দ নেই।</p>";
+                if(hasPart) {
+                    container.innerHTML += `
+                        <div class="order-group-card ${isBrandNew ? 'new-order' : ''}" onclick="toggleOrder('${orderKey}')">
+                            <div class="group-header">
+                                <div>
+                                    <div class="group-id">#Order ${d.orderId || '0000'} ${isBrandNew ? '<span class="new-badge">NEW</span>' : ''}</div>
+                                    <div class="group-item">${order.itemName}</div>
+                                </div>
+                                <span style="font-size:12px; color:#666;">ট্যাপ করুন ▾</span>
+                            </div>
+                            <div class="breakdown-section" id="details-${orderKey}">
+                                <div class="admin-details">
+                                    <b>Brand:</b> ${d.brand || 'N/A'} | <b>Program:</b> ${d.program || 'N/A'}<br>
+                                    <b>Unit:</b> ${unitStr} | <b>Specs:</b> ${d.specs || '-'}
+                                </div>
+                                ${breakdownsHTML}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
         });
     }
 
-    // --- "Order Sent" বাটন লজিক ---
-    window.markOrderSent = (orderKey, breakdownIndex) => {
-        if(confirm("আপনি কি নিশ্চিত যে মালামাল পাঠিয়ে দিয়েছেন?")){
-            const updates = {};
-            // শুধু এই স্পেসিফিক ব্রেকডাউন আইটেমের ডেলিভারি স্ট্যাটাস আপডেট
-            updates[`grouped_orders/${orderKey}/breakdown/${breakdownIndex}/deliveryStatus`] = "Delivered";
-            updates[`grouped_orders/${orderKey}/breakdown/${breakdownIndex}/sentAt`] = new Date().toLocaleString();
+    window.showPartialBox = (id) => {
+        const box = document.getElementById('box_' + id);
+        box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    };
 
-            update(ref(db), updates).then(() => {
-                alert("অর্ডার 'Sent' হিসেবে চিহ্নিত হয়েছে। এখন অফিসারের কনফার্মেশনের জন্য অপেক্ষা করুন।");
-            }).catch(err => alert("Error: " + err.message));
+    window.shipOrder = async (orderKey, index, remaining, isFull, unit) => {
+        let shipAmount = 0;
+        if(isFull) shipAmount = remaining;
+        else {
+            const input = document.getElementById(`input_${orderKey}_${index}`);
+            shipAmount = parseFloat(input.value) || 0;
         }
-    };
 
-    // --- লগআউট ---
-    window.logout = () => {
-        localStorage.removeItem('vendorMobile');
-        location.reload();
-    };
+        if(shipAmount <= 0 || shipAmount > remaining) return alert("সঠিক পরিমাণ দিন");
 
-    // অটো লগইন চেক
-    window.onload = () => {
-        const savedMobile = localStorage.getItem('vendorMobile');
-        if(savedMobile) {
-            get(ref(db, 'vendors/' + savedMobile)).then(snap => {
-                if(snap.exists()) showDashboard(snap.val().name, savedMobile);
+        if(confirm(`${shipAmount} ${unit} শিপমেন্ট পাঠাচ্ছেন? এটি অফিসারের কনফার্মেশনের পর আপডেট হবে।`)) {
+            const orderRef = ref(db, `grouped_orders/${orderKey}/breakdown/${index}`);
+            const snap = await get(orderRef);
+            const currentData = snap.val();
+            
+            // নতুন শিপমেন্ট সরাসরি waitingQty তে যোগ হবে, sentQty তে না
+            const currentWaiting = parseFloat(currentData.waitingQty) || 0;
+            const newWaiting = currentWaiting + shipAmount;
+            
+            const updates = {};
+            updates[`grouped_orders/${orderKey}/breakdown/${index}/waitingQty`] = newWaiting;
+            updates[`grouped_orders/${orderKey}/breakdown/${index}/deliveryStatus`] = "Shipped";
+            
+            update(ref(db), updates).then(() => {
+                alert("শিপমেন্ট রিকোয়েস্ট পাঠানো হয়েছে। অফিসার কনফার্ম করলে ড্যাশবোর্ডে যোগ হবে।");
+                if(!isFull) document.getElementById(`box_${orderKey}_${index}`).style.display = 'none';
             });
         }
     };
 
+    window.logout = () => { localStorage.removeItem('vendorMobile'); location.reload(); };
+
+    window.onload = () => {
+        const saved = localStorage.getItem('vendorMobile');
+        if(saved) {
+            get(ref(db, 'vendors/' + saved)).then(snap => {
+                if(snap.exists()) showDashboard(snap.val().name, saved);
+            });
+        }
+    };
 </script>
 </body>
 </html>

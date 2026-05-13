@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Point Officer Dashboard</title>
+    <title>Point Officer Dashboard - Professional v2.2</title>
     <style>
         body{ font-family: 'Segoe UI', Tahoma, sans-serif; background: #eef2f3; margin: 0; padding: 0; }
         .navbar { background: #2c3e50; display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
@@ -13,93 +13,103 @@
         .container{ max-width: 500px; margin: auto; padding: 15px; }
         .card{ background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
         h2, h3{ color: #2c3e50; text-align: center; margin-top: 0; }
-        input, select{ width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        label { font-size: 13px; color: #7f8c8d; font-weight: bold; margin-left: 5px; }
+        input, select{ width: 100%; padding: 12px; margin: 8px 0 15px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         
         .btn{ width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
         .btn-dark{ background: #2c3e50; color: white; }
         .btn-receive{ background: #f39c12; color: white; margin-top: 10px; box-shadow: 0 4px 0 #d35400; }
         .btn-distribute{ background: #27ae60; color: white; margin-top: 10px; box-shadow: 0 4px 0 #1e8449; }
-        .btn-logout{ background: #eee; color: #333; margin-top: 20px; font-size: 14px; }
+        .btn-logout{ background: #eee; color: #333; margin-top: 20px; font-size: 14px; width: 100%; }
         
-        /* Table Styles for History */
-        .history-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        .history-table th, .history-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        .history-table th { background: #f8f9fa; color: #2c3e50; }
-        .badge { background: #e67e22; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+        /* New Grouped Stock Styling */
+        .prog-group { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .prog-header { background: #34495e; color: white; padding: 10px 15px; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
+        .item-row { background: white; padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; }
+        .item-name { font-weight: bold; color: #2c3e50; margin-bottom: 5px; font-size: 14px; }
+        .item-stats { display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d; }
+        .stat-box { text-align: center; flex: 1; border-right: 1px solid #f0f0f0; }
+        .stat-box:last-child { border-right: none; }
+        .stat-val { display: block; font-weight: bold; font-size: 13px; margin-top: 2px; }
+        .val-stock { color: #27ae60; }
+        .val-dist { color: #e74c3c; }
+        .val-total { color: #2980b9; }
 
-        .receive-card{ border: 1px solid #d1d1d1; padding: 15px; background: #fff; border-radius: 12px; margin-top: 15px; }
-        .receive-header{ display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-        .item-title{ font-size: 18px; font-weight: bold; color: #2c3e50; }
-        .qty-label{ background: #2c3e50; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; }
+        .receive-card{ border: 1px solid #d1d1d1; padding: 15px; background: #fff; border-radius: 12px; margin-top: 15px; border-left: 5px solid #f39c12; position: relative; }
+        .program-badge { background: #34495e; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 5px; display: inline-block; }
+        .item-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; }
         
-        .status-msg { padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; margin-top: 10px; }
-        .already-received { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-        .not-sent { background: #f5f5f5; color: #888; border: 1px dashed #ccc; }
-        
-        .stock-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; }
+        #detailsModal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-content { background: white; margin: 15% auto; padding: 25px; width: 85%; max-width: 400px; border-radius: 15px; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+        .detail-label { font-weight: bold; color: #7f8c8d; }
+
+        .status-msg { padding: 20px; text-align: center; color: #888; font-style: italic; }
         #oDashboard, #distTab { display: none; }
-        .tab-content.active { display: block; }
     </style>
 </head>
 <body>
 
+<div id="detailsModal">
+    <div class="modal-content">
+        <h3>📄 মালের বিস্তারিত বিবরণ</h3>
+        <div id="modalBody"></div>
+        <button class="btn btn-receive" id="modalConfirmBtn">সব ঠিক আছে, রিসিভ করুন</button>
+        <button class="btn" style="background:#eee; margin-top:10px; color:#333;" onclick="closeModal()">বন্ধ করুন</button>
+    </div>
+</div>
+
 <div class="container" id="loginBox">
     <div class="card">
         <h2>👮 অফিসার লগইন</h2>
-        <input type="text" id="oAuthMobile" placeholder="মোবাইল নম্বর দিন" maxlength="11">
+        <input type="text" id="oAuthMobile" placeholder="মোবাইল নম্বর দিন (১১ ডিজিট)" maxlength="11">
         <button class="btn btn-dark" onclick="officerLogin()">লগইন করুন</button>
     </div>
 </div>
 
 <div id="oDashboard">
     <div class="navbar">
-        <button class="nav-btn active" onclick="switchTab(event, 'receiveTab')">📥 রিসিভ</button>
-        <button class="nav-btn" onclick="switchTab(event, 'distTab')">📤 ডিস্ট্রিবিউশন</button>
+        <button class="nav-btn active" id="btnRec" onclick="switchTab('receiveTab')">📥 রিসিভ</button>
+        <button class="nav-btn" id="btnDist" onclick="switchTab('distTab')">📤 ডিস্ট্রিবিউশন</button>
     </div>
 
     <div class="container">
-        <!-- রিসিভ ট্যাব -->
-        <div id="receiveTab" class="tab-content active">
+        <div id="receiveTab" class="tab-content" style="display: block;">
             <div class="card" style="background: #2c3e50; color: white; text-align: center;">
-                <h3 id="oWelcome" style="margin:0;">স্বাগতম</h3>
+                <h3 id="oWelcome" style="margin:0; color: white;">স্বাগতম</h3>
                 <p id="oLocation" style="margin:5px 0 0 0; opacity: 0.8; font-size: 13px;"></p>
             </div>
-            <h3>🚚 আগত মালামাল</h3>
+            <h3>🚚 আগত মালামাল (Waiting)</h3>
             <div id="incomingGoods"></div>
         </div>
 
-        <!-- ডিস্ট্রিবিউশন ট্যাব -->
-        <div id="distTab" class="tab-content">
+        <div id="distTab" class="tab-content" style="display: none;">
             <div class="card">
-                <h3>📦 নতুন ডিস্ট্রিবিউশন</h3>
-                <div id="myStockSummary"></div>
-                <hr>
-                <select id="distItemSelect"><option value="">আইটেম লোড হচ্ছে...</option></select>
+                <h3>📦 মাল ডিস্ট্রিবিউশন</h3>
+                <label>১. প্রোগ্রাম নির্বাচন করুন:</label>
+                <select id="distProgramSelect" onchange="filterProductsByProgram()">
+                    <option value="">প্রোগ্রাম লোড হচ্ছে...</option>
+                </select>
+
+                <label>২. প্রোডাক্ট নির্বাচন করুন:</label>
+                <select id="distItemSelect">
+                    <option value="">আগে প্রোগ্রাম বেছে নিন</option>
+                </select>
+
+                <label>৩. প্রাপকের নাম/আইডি:</label>
                 <input type="text" id="distTo" placeholder="কাকে দিচ্ছেন?">
+                
+                <label>৪. পরিমাণ:</label>
                 <input type="number" id="distQty" placeholder="কতটুকু দিচ্ছেন?">
+                
                 <button class="btn btn-distribute" onclick="processDistribute()">ডিস্ট্রিবিউশন কনফার্ম</button>
             </div>
-
-            <div class="card">
-                <h3>📜 ডিস্ট্রিবিউশন হিস্ট্রি</h3>
-                <div style="overflow-x:auto;">
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>তারিখ</th>
-                                <th>আইটেম</th>
-                                <th>পরিমাণ</th>
-                                <th>প্রাপক</th>
-                            </tr>
-                        </thead>
-                        <tbody id="distHistoryBody">
-                            <!-- হিস্ট্রি এখানে লোড হবে -->
-                        </tbody>
-                    </table>
-                </div>
+            
+            <div class="card" style="padding: 15px 10px;">
+                <h3>📊 স্টক ও বিতরণ রিপোর্ট</h3>
+                <div id="myStockSummary"></div>
             </div>
         </div>
-
         <button class="btn btn-logout" onclick="logout()">লগআউট</button>
     </div>
 </div>
@@ -112,22 +122,25 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let currentStock = {};
+    let fullStockData = {}; 
+    let receiveData = {}; // মোট কত রিসিভ হলো
+    let distributedData = {}; // মোট কত বিলি হলো
 
-    window.switchTab = (evt, tabId) => {
+    window.switchTab = (tabId) => {
         document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).style.display = 'block';
-        evt.currentTarget.classList.add('active');
+        document.getElementById(tabId === 'receiveTab' ? 'btnRec' : 'btnDist').classList.add('active');
     };
 
     window.officerLogin = async () => {
         const mobile = document.getElementById('oAuthMobile').value;
+        if(mobile.length < 11) return alert("সঠিক মোবাইল নম্বর দিন");
         const oSnap = await get(ref(db, 'points/' + mobile));
         if(oSnap.exists()){
             localStorage.setItem('officerMobile', mobile);
             showDashboard(oSnap.val().name, oSnap.val().address);
-        } else { alert("অফিসার পাওয়া যায়নি!"); }
+        } else { alert("অফিসার পাওয়া যায়নি!"); }
     };
 
     function showDashboard(pName, address) {
@@ -140,105 +153,199 @@
 
     function loadData() {
         const pMobile = localStorage.getItem('officerMobile');
-
-        // ১. রিসিভ ও স্টক লোড
-        onValue(ref(db, 'grouped_orders'), async (snap) => {
+        onValue(ref(db, 'grouped_orders'), (snap) => {
             const container = document.getElementById('incomingGoods');
             container.innerHTML = "";
-            let tempStock = {};
+            let tempTotalReceive = {}; // মোট আসা মাল
+            let hasIncoming = false;
 
             if(snap.exists()){
                 snap.forEach(child => {
                     const order = child.val();
-                    order.breakdown.forEach((b, index) => {
-                        if(b.pKey === pMobile) {
-                            if(b.receiveStatus === "Received") {
-                                tempStock[order.itemName] = (tempStock[order.itemName] || 0) + parseFloat(b.qty);
+                    const orderKey = child.key;
+                    const prog = (order.details && order.details.program) ? order.details.program : "সাধারণ";
+
+                    if(order.breakdown) {
+                        order.breakdown.forEach((b, index) => {
+                            if(b.pKey === pMobile) {
+                                // রিসিভ হওয়া মালের হিসাব
+                                if(!tempTotalReceive[prog]) tempTotalReceive[prog] = {};
+                                const confirmed = parseFloat(b.sentQty) || 0;
+                                tempTotalReceive[prog][order.itemName] = (tempTotalReceive[prog][order.itemName] || 0) + confirmed;
+
+                                // ওয়েটিং মালের হিসাব (কার্ড দেখানোর জন্য)
+                                const directWaiting = parseFloat(b.waitingQty) || 0;
+                                if(directWaiting > 0) {
+                                    hasIncoming = true;
+                                    container.innerHTML += renderCard(order, b, index, orderKey, "Direct", directWaiting, prog);
+                                }
+                                if(b.waitingLogs) {
+                                    Object.keys(b.waitingLogs).forEach(logId => {
+                                        if(b.waitingLogs[logId].status === 'pending') {
+                                            hasIncoming = true;
+                                            container.innerHTML += renderCard(order, b, index, orderKey, logId, b.waitingLogs[logId].amount, prog);
+                                        }
+                                    });
+                                }
                             }
-                            // UI রেন্ডার আগের মতোই...
-                            const vendorSent = b.deliveryStatus === "Delivered";
-                            const alreadyReceived = b.receiveStatus === "Received";
-                            let statusUI = alreadyReceived ? 
-                                `<div class="status-msg already-received">✅ রিসিভ করা হয়েছে</div>` :
-                                (vendorSent ? `<button class="btn btn-receive" onclick="confirmReceive('${child.key}', ${index})">📦 মাল বুঝে পেলাম</button>` : `<div class="status-msg not-sent">⏳ ভেন্ডর পাঠায়নি</div>`);
-                            
-                            container.innerHTML += `<div class="receive-card"><div class="receive-header"><span class="item-title">${order.itemName}</span><span class="qty-label">${b.qty} pc</span></div>${statusUI}</div>`;
-                        }
-                    });
+                        });
+                    }
                 });
             }
+            receiveData = tempTotalReceive;
+            if(!hasIncoming) container.innerHTML = `<div class="status-msg">⏳ কোনো আগত মাল নেই</div>`;
 
-            // ২. ডিস্ট্রিবিউশন ডাটা ও হিস্ট্রি লোড
+            // ডিস্ট্রিবিউশন ডাটা লোড
             onValue(ref(db, 'distributions/' + pMobile), (dSnap) => {
-                const historyBody = document.getElementById('distHistoryBody');
-                historyBody.innerHTML = "";
-                let distItems = [];
-
+                let tempDist = {};
                 if(dSnap.exists()){
                     dSnap.forEach(d => {
                         const val = d.val();
-                        // স্টক থেকে বিয়োগ
-                        if(tempStock[val.item]) tempStock[val.item] -= parseFloat(val.qty);
-                        distItems.push(val);
+                        if(!tempDist[val.program]) tempDist[val.program] = {};
+                        tempDist[val.program][val.item] = (tempDist[val.program][val.item] || 0) + parseFloat(val.qty);
                     });
                 }
-                
-                // হিস্ট্রি টেবিল সাজানো (লেটেস্ট আগে)
-                distItems.reverse().forEach(row => {
-                    historyBody.innerHTML += `<tr>
-                        <td>${row.date.split(',')[0]}</td>
-                        <td>${row.item}</td>
-                        <td><span class="badge">${row.qty}</span></td>
-                        <td>${row.to}</td>
-                    </tr>`;
-                });
-
-                currentStock = tempStock;
-                updateStockUI();
+                distributedData = tempDist;
+                calculateFinalStock();
             });
         });
     }
 
+    function calculateFinalStock() {
+        let finalStock = {};
+        for(let prog in receiveData) {
+            finalStock[prog] = {};
+            for(let item in receiveData[prog]) {
+                const received = receiveData[prog][item] || 0;
+                const distributed = (distributedData[prog] && distributedData[prog][item]) ? distributedData[prog][item] : 0;
+                finalStock[prog][item] = received - distributed;
+            }
+        }
+        fullStockData = finalStock;
+        updateProgramDropdown();
+        updateStockUI();
+    }
+
     function updateStockUI() {
         const summary = document.getElementById('myStockSummary');
-        const select = document.getElementById('distItemSelect');
         summary.innerHTML = "";
-        select.innerHTML = '<option value="">আইটেম বেছে নিন</option>';
-        for(let item in currentStock) {
-            if(currentStock[item] > 0) {
-                summary.innerHTML += `<div class="stock-row"><span>${item}</span><span>${currentStock[item]} পিস</span></div>`;
-                select.innerHTML += `<option value="${item}">${item}</option>`;
+        let hasData = false;
+
+        for(let prog in receiveData) {
+            hasData = true;
+            let progHTML = `
+                <div class="prog-group">
+                    <div class="prog-header">
+                        <span>📋 ${prog}</span>
+                    </div>`;
+            
+            for(let item in receiveData[prog]) {
+                const total = receiveData[prog][item];
+                const dist = (distributedData[prog] && distributedData[prog][item]) ? distributedData[prog][item] : 0;
+                const stock = total - dist;
+
+                progHTML += `
+                    <div class="item-row">
+                        <span class="item-name">${item}</span>
+                        <div class="item-stats">
+                            <div class="stat-box">মোট রিসিভ<span class="stat-val val-total">${total}</span></div>
+                            <div class="stat-box">বিতরণ<span class="stat-val val-dist">${dist}</span></div>
+                            <div class="stat-box">স্টকে আছে<span class="stat-val val-stock">${stock}</span></div>
+                        </div>
+                    </div>`;
+            }
+            progHTML += `</div>`;
+            summary.innerHTML += progHTML;
+        }
+
+        if(!hasData) summary.innerHTML = "<p class='status-msg'>কোনো ডাটা পাওয়া যায়নি</p>";
+    }
+
+    function renderCard(order, b, index, orderKey, logId, amount, progName) {
+        return `
+            <div class="receive-card">
+                <span class="program-badge">${progName}</span>
+                <span class="item-title">${order.itemName}</span>
+                <div style="font-size:13px; color:#e67e22; margin:5px 0;">ভেন্ডর পাঠিয়েছে: <b>${amount}</b></div>
+                <button class="btn btn-receive" style="padding:10px; font-size:14px;" 
+                    onclick="openDetails('${orderKey}', ${index}, '${logId}', ${amount})">
+                    🔍 বিস্তারিত ও রিসিভ
+                </button>
+            </div>`;
+    }
+
+    window.openDetails = async (orderKey, idx, logId, amount) => {
+        const snap = await get(ref(db, `grouped_orders/${orderKey}`));
+        const order = snap.val();
+        const prog = (order.details && order.details.program) ? order.details.program : "সাধারণ";
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
+            <div class="detail-row"><span class="detail-label">আইটেম:</span> <span>${order.itemName}</span></div>
+            <div class="detail-row"><span class="detail-label">প্রোগ্রাম:</span> <span>${prog}</span></div>
+            <div class="detail-row"><span class="detail-label">পরিমাণ:</span> <span style="color:#f39c12; font-weight:bold;">${amount}</span></div>
+        `;
+        document.getElementById('detailsModal').style.display = 'block';
+        document.getElementById('modalConfirmBtn').onclick = () => confirmReceive(orderKey, idx, logId, amount);
+    };
+
+    async function confirmReceive(orderKey, idx, logId, amount) {
+        if(confirm(`আপনি কি ${amount} পরিমাণ মাল রিসিভ করতে নিশ্চিত?`)){
+            const updates = {};
+            const path = `grouped_orders/${orderKey}/breakdown/${idx}`;
+            if(logId === "Direct") updates[`${path}/waitingQty`] = 0;
+            else updates[`${path}/waitingLogs/${logId}/status`] = 'received';
+            const currentSentSnap = await get(ref(db, `${path}/sentQty`));
+            const currentSent = parseFloat(currentSentSnap.val()) || 0;
+            updates[`${path}/sentQty`] = currentSent + parseFloat(amount);
+            updates[`${path}/deliveryLogs/${Date.now()}`] = { date: new Date().toLocaleString('bn-BD'), amount: amount };
+            update(ref(db), updates).then(() => { closeModal(); alert("মাল রিসিভ হয়েছে!"); });
+        }
+    }
+
+    function updateProgramDropdown() {
+        const progSelect = document.getElementById('distProgramSelect');
+        const currentVal = progSelect.value;
+        progSelect.innerHTML = '<option value="">প্রোগ্রাম বেছে নিন</option>';
+        for (let prog in fullStockData) {
+            progSelect.innerHTML += `<option value="${prog}">${prog}</option>`;
+        }
+        if(currentVal) progSelect.value = currentVal;
+    }
+
+    window.filterProductsByProgram = () => {
+        const selectedProg = document.getElementById('distProgramSelect').value;
+        const itemSelect = document.getElementById('distItemSelect');
+        itemSelect.innerHTML = '<option value="">প্রোডাক্ট বেছে নিন</option>';
+        if(selectedProg && fullStockData[selectedProg]) {
+            for(let item in fullStockData[selectedProg]) {
+                if(fullStockData[selectedProg][item] > 0) {
+                    itemSelect.innerHTML += `<option value="${item}">${item} (স্টক: ${fullStockData[selectedProg][item]})</option>`;
+                }
             }
         }
     }
 
-    window.confirmReceive = (orderKey, idx) => {
-        if(confirm("আপনি কি মাল বুঝে পেয়েছেন?")){
-            const up = {};
-            up[`grouped_orders/${orderKey}/breakdown/${idx}/receiveStatus`] = "Received";
-            up[`grouped_orders/${orderKey}/breakdown/${idx}/receivedAt`] = new Date().toLocaleString();
-            update(ref(db), up);
-        }
-    };
-
     window.processDistribute = () => {
+        const prog = document.getElementById('distProgramSelect').value;
         const item = document.getElementById('distItemSelect').value;
         const to = document.getElementById('distTo').value;
         const qty = parseFloat(document.getElementById('distQty').value);
-        if(!item || !to || !qty || qty > currentStock[item]) return alert("সঠিক তথ্য দিন বা স্টক চেক করুন");
-
-        const data = { item, to, qty, date: new Date().toLocaleString() };
+        if(!prog || !item || !to || !qty || qty > fullStockData[prog][item]) return alert("সঠিক তথ্য দিন অথবা পর্যাপ্ত স্টক আছে কি না চেক করুন");
+        const data = { program: prog, item: item, to: to, qty: qty, date: new Date().toLocaleString('bn-BD') };
         push(ref(db, 'distributions/' + localStorage.getItem('officerMobile')), data).then(() => {
             alert("ডিস্ট্রিবিউশন সফল!");
             document.getElementById('distTo').value = "";
             document.getElementById('distQty').value = "";
+            filterProductsByProgram();
         });
     };
 
+    window.closeModal = () => document.getElementById('detailsModal').style.display = 'none';
     window.logout = () => { localStorage.clear(); location.reload(); };
+
     window.onload = () => {
         const saved = localStorage.getItem('officerMobile');
-        if(saved) get(ref(db, 'points/' + saved)).then(s => s.exists() && showDashboard(s.val().name, s.val().address));
+        if(saved) get(ref(db, 'points/' + saved)).then(s => { if(s.exists()) showDashboard(s.val().name, s.val().address); });
     };
 </script>
 </body>
