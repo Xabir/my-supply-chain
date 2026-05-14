@@ -9,7 +9,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        body{ font-family:'Segoe UI', Tahoma, sans-serif; background:#f0f2f5; margin:0; padding:0; }
+        /* শুরুতে বডি লুকিয়ে রাখা হয়েছে সিকিউরিটির জন্য */
+        body { display: none; font-family:'Segoe UI', Tahoma, sans-serif; background:#f0f2f5; margin:0; padding:0; }
+        
         .navbar{ background:#1a2a6c; display:flex; justify-content:center; padding:10px; position:sticky; top:0; z-index:1000; box-shadow:0 2px 10px rgba(0,0,0,0.2); }
         .tab-btn{ background:none; border:none; color:#fff; padding:12px 25px; cursor:pointer; font-size:16px; font-weight:bold; border-bottom:3px solid transparent; transition:0.3s; }
         .tab-btn.active{ border-bottom:3px solid #f39c12; color:#f39c12; }
@@ -45,30 +47,27 @@
 </head>
 <body>
 
-<!-- আপনার মূল কোডের ৫৭ নম্বর লাইন (<body>) এর ঠিক নিচে এটি পেস্ট করুন -->
-<body>
-
+<!-- সিকিউরিটি স্ক্রিপ্ট -->
 <script>
     (function() {
-        const adminPass = "jabir123"; // আপনার পাসওয়ার্ড এখানে লিখুন
+        const adminPass = "supply123@"; 
         const sessionKey = "admin_logged_in";
 
-        if (sessionStorage.getItem(sessionKey) !== "true") {
+        if (sessionStorage.getItem(sessionKey) === "true") {
+            document.body.style.display = "block";
+        } else {
             let userPass = prompt("অ্যাডমিন প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন:");
             if (userPass === adminPass) {
                 sessionStorage.setItem(sessionKey, "true");
+                document.body.style.display = "block";
                 alert("স্বাগতম, জাবির ভাই!");
             } else {
-                alert("ভুল পাসওয়ার্ড! অ্যাক্সেস রিফিউজড।");
-                window.location.href = "officer.html"; // ভুল হলে এই পেজে চলে যাবে
+                alert("ভুল পাসওয়ার্ড!");
+                window.location.href = "officer.html"; 
             }
         }
     })();
 </script>
-
-<div class="navbar">
-    <button class="tab-btn active" onclick="openTab(event,'data-mgmt')">১. ডেটা ম্যানেজমেন্ট</button>
-    <!-- বাকি কোডগুলো আগের মতোই থাকবে... -->
 
 <div class="navbar">
     <button class="tab-btn active" onclick="openTab(event,'data-mgmt')">১. ডেটা ম্যানেজমেন্ট</button>
@@ -86,7 +85,7 @@
         <button class="btn btn-blue" id="btnSavePoint" onclick="savePoint()">পয়েন্ট সেভ করুন</button>
         <button class="btn" style="margin-top:10px;background:#eee;" onclick="toggleSection('pointList')">📋 পয়েন্ট লিস্ট</button>
         <div id="pointList" class="list-section">
-            <table id="pointTable"><thead><tr><th>নাম</th><th>মোবাইল</th><th>ঠিকানা</th><th>অ্যাকশন</th></tr></thead><tbody></tbody></table>
+            <table id="pointTable"><thead><tr><th>নাম</th><th>মোাবাইল</th><th>ঠিকানা</th><th>অ্যাকশন</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
     <div class="card">
@@ -102,7 +101,9 @@
     </div>
 </div>
 
+<!-- বাকি অর্ডার ম্যানেজমেন্ট এবং রিপোর্টস সেকশন (আপনার কোডের মতোই) -->
 <div id="order-mgmt" class="container">
+    <!-- আপনার অর্ডার ম্যানেজমেন্ট কোড এখানে... -->
     <div class="card">
         <h2>🏭 মাল্টি-ভেন্ডর ওয়ার্ক অর্ডার</h2>
         <input type="hidden" id="editOrderFirebaseKey">
@@ -203,6 +204,7 @@
 </div>
 
 <script type="module">
+/* Firebase and all logic remains exactly same as your code */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -240,7 +242,7 @@ onValue(ref(db, '/'), snap => {
     processReports();
 });
 
-// --- Management Functions with Edit ---
+// --- Management Functions ---
 window.savePoint = () => {
     const n = document.getElementById('pName').value, m = document.getElementById('pMobile').value, a = document.getElementById('pAddress').value;
     const editKey = document.getElementById('pEditKey').value;
@@ -395,7 +397,6 @@ window.cancelOrder = (k) => {
     }
 };
 
-// --- History & Reports ---
 function updateOrderHistory(orders) {
     const tbody = document.querySelector('#orderHistoryTable tbody'); tbody.innerHTML = "";
     if(!orders) return;
@@ -461,10 +462,11 @@ function processReports() {
 
 window.deleteData = (p,k) => confirm("নিশ্চিত মুছতে চান?") && remove(ref(db,`${p}/${k}`));
 </script>
-</body>
-</html>
 
 <div style="padding:10px; background:#eee; text-align:center;">
     <a href="vendor.html" style="margin-right:15px;">ভেন্ডর প্যানেল</a>
     <a href="officer.html">অফিসার প্যানেল</a>
 </div>
+
+</body>
+</html>
