@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Point Officer Dashboard - Professional v2.2</title>
+    <title>Point Officer Dashboard - Professional v2.8</title>
     <style>
         body{ font-family: 'Segoe UI', Tahoma, sans-serif; background: #eef2f3; margin: 0; padding: 0; }
         .navbar { background: #2c3e50; display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
@@ -20,39 +20,37 @@
         .btn-dark{ background: #2c3e50; color: white; }
         .btn-receive{ background: #f39c12; color: white; margin-top: 10px; box-shadow: 0 4px 0 #d35400; }
         .btn-distribute{ background: #27ae60; color: white; margin-top: 10px; box-shadow: 0 4px 0 #1e8449; }
-        .btn-logout{ background: #eee; color: #333; margin-top: 20px; font-size: 14px; width: 100%; }
+        .btn-logout{ background: #e24c4c; color: #333; margin-top: 20px; font-size: 14px; width: 100%; }
         
-        /* New Grouped Stock Styling */
-        .prog-group { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
-        .prog-header { background: #34495e; color: white; padding: 10px 15px; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; }
-        .item-row { background: white; padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; }
-        .item-name { font-weight: bold; color: #2c3e50; margin-bottom: 5px; font-size: 14px; }
-        .item-stats { display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d; }
-        .stat-box { text-align: center; flex: 1; border-right: 1px solid #f0f0f0; }
-        .stat-box:last-child { border-right: none; }
-        .stat-val { display: block; font-weight: bold; font-size: 13px; margin-top: 2px; }
-        .val-stock { color: #27ae60; }
-        .val-dist { color: #e74c3c; }
-        .val-total { color: #2980b9; }
+        #detailsModal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); overflow-y: auto; }
+        .modal-content { background: white; margin: 10% auto; padding: 20px; width: 90%; max-width: 450px; border-radius: 15px; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; align-items: center; }
+        .detail-label { font-weight: bold; color: #7f8c8d; min-width: 100px; }
+        .detail-val { text-align: right; color: #2c3e50; font-weight: bold; }
+        .spec-box { background: #fdf6e3; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 13px; border: 1px solid #faebcc; color: #856404; line-height: 1.5; }
 
-        .receive-card{ border: 1px solid #d1d1d1; padding: 15px; background: #fff; border-radius: 12px; margin-top: 15px; border-left: 5px solid #f39c12; position: relative; }
+        .receive-card{ border: 1px solid #d1d1d1; padding: 15px; background: #fff; border-radius: 12px; margin-top: 15px; border-left: 5px solid #f39c12; }
         .program-badge { background: #34495e; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 5px; display: inline-block; }
-        .item-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; }
+        .order-id-badge { background: #f39c12; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px; font-weight: bold;}
+        .item-title { font-size: 18px; font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px; }
         
-        #detailsModal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-        .modal-content { background: white; margin: 15% auto; padding: 25px; width: 85%; max-width: 400px; border-radius: 15px; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
-        .detail-label { font-weight: bold; color: #7f8c8d; }
-
         .status-msg { padding: 20px; text-align: center; color: #888; font-style: italic; }
         #oDashboard, #distTab { display: none; }
+
+        .prog-group { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .prog-header { background: #2c3e50; color: white; padding: 10px 15px; font-weight: bold; font-size: 14px; }
+        .item-row { background: white; padding: 10px 15px; border-bottom: 1px solid #eee; }
+        .item-stats { display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; }
+        .stat-box { text-align: center; flex: 1; border-right: 1px solid #f0f0f0; }
+        .stat-box:last-child { border-right: none; }
+        .stat-val { display: block; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div id="detailsModal">
     <div class="modal-content">
-        <h3>📄 মালের বিস্তারিত বিবরণ</h3>
+        <h3 style="border-bottom: 2px solid #f39c12; padding-bottom: 10px; text-align: center;">📦 মালের পূর্ণ বিবরণ</h3>
         <div id="modalBody"></div>
         <button class="btn btn-receive" id="modalConfirmBtn">সব ঠিক আছে, রিসিভ করুন</button>
         <button class="btn" style="background:#eee; margin-top:10px; color:#333;" onclick="closeModal()">বন্ধ করুন</button>
@@ -85,30 +83,18 @@
 
         <div id="distTab" class="tab-content" style="display: none;">
             <div class="card">
-                <h3>📦 মাল ডিস্ট্রিবিউশন</h3>
-                <label>১. প্রোগ্রাম নির্বাচন করুন:</label>
-                <select id="distProgramSelect" onchange="filterProductsByProgram()">
-                    <option value="">প্রোগ্রাম লোড হচ্ছে...</option>
-                </select>
-
-                <label>২. প্রোডাক্ট নির্বাচন করুন:</label>
-                <select id="distItemSelect">
-                    <option value="">আগে প্রোগ্রাম বেছে নিন</option>
-                </select>
-
+                <h3>📤 মাল ডিস্ট্রিবিউশন</h3>
+                <label>১. সঠিক অর্ডার (ID) বাছুন:</label>
+                <select id="distOrderSelect" onchange="filterProductsByOrder()"></select>
+                <label>২. প্রোডাক্ট:</label>
+                <select id="distItemSelect"></select>
                 <label>৩. প্রাপকের নাম/আইডি:</label>
                 <input type="text" id="distTo" placeholder="কাকে দিচ্ছেন?">
-                
                 <label>৪. পরিমাণ:</label>
-                <input type="number" id="distQty" placeholder="কতটুকু দিচ্ছেন?">
-                
-                <button class="btn btn-distribute" onclick="processDistribute()">ডিস্ট্রিবিউশন কনফার্ম</button>
+                <input type="number" id="distQty" placeholder="পরিমাণ দিন">
+                <button class="btn btn-distribute" onclick="processDistribute()">বিতরণ নিশ্চিত করুন</button>
             </div>
-            
-            <div class="card" style="padding: 15px 10px;">
-                <h3>📊 স্টক ও বিতরণ রিপোর্ট</h3>
-                <div id="myStockSummary"></div>
-            </div>
+            <div id="myStockSummary"></div>
         </div>
         <button class="btn btn-logout" onclick="logout()">লগআউট</button>
     </div>
@@ -123,24 +109,16 @@
     const db = getDatabase(app);
 
     let fullStockData = {}; 
-    let receiveData = {}; // মোট কত রিসিভ হলো
-    let distributedData = {}; // মোট কত বিলি হলো
-
-    window.switchTab = (tabId) => {
-        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).style.display = 'block';
-        document.getElementById(tabId === 'receiveTab' ? 'btnRec' : 'btnDist').classList.add('active');
-    };
+    let receiveData = {}; 
+    let distributedData = {};
 
     window.officerLogin = async () => {
         const mobile = document.getElementById('oAuthMobile').value;
-        if(mobile.length < 11) return alert("সঠিক মোবাইল নম্বর দিন");
         const oSnap = await get(ref(db, 'points/' + mobile));
         if(oSnap.exists()){
             localStorage.setItem('officerMobile', mobile);
             showDashboard(oSnap.val().name, oSnap.val().address);
-        } else { alert("অফিসার পাওয়া যায়নি!"); }
+        } else { alert("অফিসার পাওয়া যায়নি!"); }
     };
 
     function showDashboard(pName, address) {
@@ -156,34 +134,34 @@
         onValue(ref(db, 'grouped_orders'), (snap) => {
             const container = document.getElementById('incomingGoods');
             container.innerHTML = "";
-            let tempTotalReceive = {}; // মোট আসা মাল
+            let tempTotalReceive = {}; 
             let hasIncoming = false;
 
             if(snap.exists()){
                 snap.forEach(child => {
                     const order = child.val();
-                    const orderKey = child.key;
-                    const prog = (order.details && order.details.program) ? order.details.program : "সাধারণ";
+                    const d = order.details || {};
+                    const orderId = d.orderId || "N/A";
+                    const prog = d.program || "সাধারণ";
+                    
+                    // এখানে আইডি আগে রাখছি কারণ প্রোগ্রাম নাম রিপিট হতে পারে
+                    const uniqueKey = `[ID: ${orderId}] ${prog}`;
 
                     if(order.breakdown) {
                         order.breakdown.forEach((b, index) => {
                             if(b.pKey === pMobile) {
-                                // রিসিভ হওয়া মালের হিসাব
-                                if(!tempTotalReceive[prog]) tempTotalReceive[prog] = {};
-                                const confirmed = parseFloat(b.sentQty) || 0;
-                                tempTotalReceive[prog][order.itemName] = (tempTotalReceive[prog][order.itemName] || 0) + confirmed;
+                                if(!tempTotalReceive[uniqueKey]) tempTotalReceive[uniqueKey] = {};
+                                tempTotalReceive[uniqueKey][order.itemName] = (tempTotalReceive[uniqueKey][order.itemName] || 0) + (parseFloat(b.sentQty) || 0);
 
-                                // ওয়েটিং মালের হিসাব (কার্ড দেখানোর জন্য)
-                                const directWaiting = parseFloat(b.waitingQty) || 0;
-                                if(directWaiting > 0) {
+                                if(parseFloat(b.waitingQty) > 0) {
                                     hasIncoming = true;
-                                    container.innerHTML += renderCard(order, b, index, orderKey, "Direct", directWaiting, prog);
+                                    container.innerHTML += renderCard(order, b, index, child.key, "Direct", b.waitingQty, prog, orderId);
                                 }
                                 if(b.waitingLogs) {
                                     Object.keys(b.waitingLogs).forEach(logId => {
                                         if(b.waitingLogs[logId].status === 'pending') {
                                             hasIncoming = true;
-                                            container.innerHTML += renderCard(order, b, index, orderKey, logId, b.waitingLogs[logId].amount, prog);
+                                            container.innerHTML += renderCard(order, b, index, child.key, logId, b.waitingLogs[logId].amount, prog, orderId);
                                         }
                                     });
                                 }
@@ -194,158 +172,134 @@
             }
             receiveData = tempTotalReceive;
             if(!hasIncoming) container.innerHTML = `<div class="status-msg">⏳ কোনো আগত মাল নেই</div>`;
-
-            // ডিস্ট্রিবিউশন ডাটা লোড
-            onValue(ref(db, 'distributions/' + pMobile), (dSnap) => {
-                let tempDist = {};
-                if(dSnap.exists()){
-                    dSnap.forEach(d => {
-                        const val = d.val();
-                        if(!tempDist[val.program]) tempDist[val.program] = {};
-                        tempDist[val.program][val.item] = (tempDist[val.program][val.item] || 0) + parseFloat(val.qty);
-                    });
-                }
-                distributedData = tempDist;
-                calculateFinalStock();
-            });
+            fetchDistributions(pMobile);
         });
     }
 
-    function calculateFinalStock() {
-        let finalStock = {};
-        for(let prog in receiveData) {
-            finalStock[prog] = {};
-            for(let item in receiveData[prog]) {
-                const received = receiveData[prog][item] || 0;
-                const distributed = (distributedData[prog] && distributedData[prog][item]) ? distributedData[prog][item] : 0;
-                finalStock[prog][item] = received - distributed;
+    function fetchDistributions(pMobile) {
+        onValue(ref(db, 'distributions/' + pMobile), (dSnap) => {
+            let tempDist = {};
+            if(dSnap.exists()){
+                dSnap.forEach(d => {
+                    const v = d.val();
+                    const uk = v.uniqueOrderKey;
+                    if(!tempDist[uk]) tempDist[uk] = {};
+                    tempDist[uk][v.item] = (tempDist[uk][v.item] || 0) + parseFloat(v.qty);
+                });
             }
-        }
-        fullStockData = finalStock;
-        updateProgramDropdown();
-        updateStockUI();
+            distributedData = tempDist;
+            calculateFinalStock();
+        });
     }
 
-    function updateStockUI() {
-        const summary = document.getElementById('myStockSummary');
-        summary.innerHTML = "";
-        let hasData = false;
-
-        for(let prog in receiveData) {
-            hasData = true;
-            let progHTML = `
-                <div class="prog-group">
-                    <div class="prog-header">
-                        <span>📋 ${prog}</span>
-                    </div>`;
-            
-            for(let item in receiveData[prog]) {
-                const total = receiveData[prog][item];
-                const dist = (distributedData[prog] && distributedData[prog][item]) ? distributedData[prog][item] : 0;
-                const stock = total - dist;
-
-                progHTML += `
-                    <div class="item-row">
-                        <span class="item-name">${item}</span>
-                        <div class="item-stats">
-                            <div class="stat-box">মোট রিসিভ<span class="stat-val val-total">${total}</span></div>
-                            <div class="stat-box">বিতরণ<span class="stat-val val-dist">${dist}</span></div>
-                            <div class="stat-box">স্টকে আছে<span class="stat-val val-stock">${stock}</span></div>
-                        </div>
-                    </div>`;
-            }
-            progHTML += `</div>`;
-            summary.innerHTML += progHTML;
-        }
-
-        if(!hasData) summary.innerHTML = "<p class='status-msg'>কোনো ডাটা পাওয়া যায়নি</p>";
-    }
-
-    function renderCard(order, b, index, orderKey, logId, amount, progName) {
+    function renderCard(order, b, index, orderKey, logId, amount, progName, orderId) {
         return `
             <div class="receive-card">
+                <span class="order-id-badge">ID: ${orderId}</span>
                 <span class="program-badge">${progName}</span>
                 <span class="item-title">${order.itemName}</span>
-                <div style="font-size:13px; color:#e67e22; margin:5px 0;">ভেন্ডর পাঠিয়েছে: <b>${amount}</b></div>
-                <button class="btn btn-receive" style="padding:10px; font-size:14px;" 
-                    onclick="openDetails('${orderKey}', ${index}, '${logId}', ${amount})">
-                    🔍 বিস্তারিত ও রিসিভ
-                </button>
+                <div style="color:#e67e22; font-weight:bold;">পরিমাণ: ${amount}</div>
+                <button class="btn btn-receive" style="height:40px; padding:0;" onclick="openDetails('${orderKey}', ${index}, '${logId}', ${amount})">🔍 বিস্তারিত ও রিসিভ</button>
             </div>`;
     }
 
     window.openDetails = async (orderKey, idx, logId, amount) => {
         const snap = await get(ref(db, `grouped_orders/${orderKey}`));
         const order = snap.val();
-        const prog = (order.details && order.details.program) ? order.details.program : "সাধারণ";
+        const d = order.details || {};
         const modalBody = document.getElementById('modalBody');
         modalBody.innerHTML = `
-            <div class="detail-row"><span class="detail-label">আইটেম:</span> <span>${order.itemName}</span></div>
-            <div class="detail-row"><span class="detail-label">প্রোগ্রাম:</span> <span>${prog}</span></div>
-            <div class="detail-row"><span class="detail-label">পরিমাণ:</span> <span style="color:#f39c12; font-weight:bold;">${amount}</span></div>
+            <div class="detail-row"><span class="detail-label">অর্ডার আইডি:</span> <span class="detail-val" style="color:red;">#${d.orderId}</span></div>
+            <div class="detail-row"><span class="detail-label">প্রোগ্রাম:</span> <span class="detail-val">${d.program}</span></div>
+            <div class="detail-row"><span class="detail-label">আইটেম নাম:</span> <span class="detail-val">${order.itemName}</span></div>
+            <div class="detail-row"><span class="detail-label">পরিমাণ:</span> <span class="detail-val" style="font-size:18px;">${amount}</span></div>
+            <div class="spec-box">${d.specs || 'কোনো বর্ণনা নেই'}</div>
         `;
         document.getElementById('detailsModal').style.display = 'block';
         document.getElementById('modalConfirmBtn').onclick = () => confirmReceive(orderKey, idx, logId, amount);
     };
 
     async function confirmReceive(orderKey, idx, logId, amount) {
-        if(confirm(`আপনি কি ${amount} পরিমাণ মাল রিসিভ করতে নিশ্চিত?`)){
-            const updates = {};
-            const path = `grouped_orders/${orderKey}/breakdown/${idx}`;
-            if(logId === "Direct") updates[`${path}/waitingQty`] = 0;
-            else updates[`${path}/waitingLogs/${logId}/status`] = 'received';
-            const currentSentSnap = await get(ref(db, `${path}/sentQty`));
-            const currentSent = parseFloat(currentSentSnap.val()) || 0;
-            updates[`${path}/sentQty`] = currentSent + parseFloat(amount);
-            updates[`${path}/deliveryLogs/${Date.now()}`] = { date: new Date().toLocaleString('bn-BD'), amount: amount };
-            update(ref(db), updates).then(() => { closeModal(); alert("মাল রিসিভ হয়েছে!"); });
+        const updates = {};
+        const path = `grouped_orders/${orderKey}/breakdown/${idx}`;
+        if(logId === "Direct") updates[`${path}/waitingQty`] = 0;
+        else updates[`${path}/waitingLogs/${logId}/status`] = 'received';
+        
+        const curSent = await get(ref(db, path + '/sentQty'));
+        updates[`${path}/sentQty`] = (parseFloat(curSent.val()) || 0) + parseFloat(amount);
+        update(ref(db), updates).then(() => { closeModal(); });
+    }
+
+    function calculateFinalStock() {
+        let finalStock = {};
+        for(let uk in receiveData) {
+            finalStock[uk] = {};
+            for(let item in receiveData[uk]) {
+                const rec = receiveData[uk][item] || 0;
+                const dis = (distributedData[uk] && distributedData[uk][item]) ? distributedData[uk][item] : 0;
+                finalStock[uk][item] = rec - dis;
+            }
+        }
+        fullStockData = finalStock;
+        updateUI();
+    }
+
+    function updateUI() {
+        const summary = document.getElementById('myStockSummary');
+        summary.innerHTML = "<h3>📊 বর্তমান স্টক</h3>";
+        const orderSelect = document.getElementById('distOrderSelect');
+        orderSelect.innerHTML = '<option value="">অর্ডার আইডি বাছুন</option>';
+
+        for(let uk in fullStockData) {
+            orderSelect.innerHTML += `<option value="${uk}">${uk}</option>`;
+            let html = `<div class="prog-group"><div class="prog-header">${uk}</div>`;
+            for(let item in fullStockData[uk]) {
+                html += `<div class="item-row"><b>${item}</b><div class="item-stats">
+                    <div class="stat-box">আগত<span class="stat-val">${receiveData[uk][item]}</span></div>
+                    <div class="stat-box">স্টক<span class="stat-val" style="color:green">${fullStockData[uk][item]}</span></div>
+                </div></div>`;
+            }
+            summary.innerHTML += html + `</div>`;
         }
     }
 
-    function updateProgramDropdown() {
-        const progSelect = document.getElementById('distProgramSelect');
-        const currentVal = progSelect.value;
-        progSelect.innerHTML = '<option value="">প্রোগ্রাম বেছে নিন</option>';
-        for (let prog in fullStockData) {
-            progSelect.innerHTML += `<option value="${prog}">${prog}</option>`;
-        }
-        if(currentVal) progSelect.value = currentVal;
-    }
-
-    window.filterProductsByProgram = () => {
-        const selectedProg = document.getElementById('distProgramSelect').value;
+    window.filterProductsByOrder = () => {
+        const uk = document.getElementById('distOrderSelect').value;
         const itemSelect = document.getElementById('distItemSelect');
-        itemSelect.innerHTML = '<option value="">প্রোডাক্ট বেছে নিন</option>';
-        if(selectedProg && fullStockData[selectedProg]) {
-            for(let item in fullStockData[selectedProg]) {
-                if(fullStockData[selectedProg][item] > 0) {
-                    itemSelect.innerHTML += `<option value="${item}">${item} (স্টক: ${fullStockData[selectedProg][item]})</option>`;
-                }
+        itemSelect.innerHTML = '<option value="">প্রোডাক্ট বাছুন</option>';
+        if(uk && fullStockData[uk]) {
+            for(let item in fullStockData[uk]) {
+                if(fullStockData[uk][item] > 0)
+                itemSelect.innerHTML += `<option value="${item}">${item} (${fullStockData[uk][item]})</option>`;
             }
         }
     }
 
     window.processDistribute = () => {
-        const prog = document.getElementById('distProgramSelect').value;
+        const uk = document.getElementById('distOrderSelect').value;
         const item = document.getElementById('distItemSelect').value;
         const to = document.getElementById('distTo').value;
         const qty = parseFloat(document.getElementById('distQty').value);
-        if(!prog || !item || !to || !qty || qty > fullStockData[prog][item]) return alert("সঠিক তথ্য দিন অথবা পর্যাপ্ত স্টক আছে কি না চেক করুন");
-        const data = { program: prog, item: item, to: to, qty: qty, date: new Date().toLocaleString('bn-BD') };
+        if(!uk || !item || !to || !qty || qty > fullStockData[uk][item]) return alert("ভুল তথ্য!");
+
+        const data = { uniqueOrderKey: uk, item: item, to: to, qty: qty, date: new Date().toLocaleString('bn-BD') };
         push(ref(db, 'distributions/' + localStorage.getItem('officerMobile')), data).then(() => {
-            alert("ডিস্ট্রিবিউশন সফল!");
-            document.getElementById('distTo').value = "";
+            alert("বিতরণ সফল!");
             document.getElementById('distQty').value = "";
-            filterProductsByProgram();
         });
     };
 
+    window.switchTab = (id) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).style.display = 'block';
+        document.getElementById(id === 'receiveTab' ? 'btnRec' : 'btnDist').classList.add('active');
+    };
     window.closeModal = () => document.getElementById('detailsModal').style.display = 'none';
     window.logout = () => { localStorage.clear(); location.reload(); };
-
     window.onload = () => {
-        const saved = localStorage.getItem('officerMobile');
-        if(saved) get(ref(db, 'points/' + saved)).then(s => { if(s.exists()) showDashboard(s.val().name, s.val().address); });
+        const m = localStorage.getItem('officerMobile');
+        if(m) get(ref(db, 'points/' + m)).then(s => { if(s.exists()) showDashboard(s.val().name, s.val().address); });
     };
 </script>
 </body>

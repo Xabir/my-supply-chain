@@ -14,9 +14,10 @@
         .btn-blue{ background: #1a2a6c; color: white; width: 100%; padding: 14px; font-size: 16px; }
         .btn-green{ background: #27ae60; color: white; flex: 1; font-size: 13px; }
         .btn-orange{ background: #f39c12; color: white; flex: 1; font-size: 13px; }
-        .btn-logout{ background: #eee; color: #333; margin-top: 20px; width: 100%; font-size: 14px; }
+        .btn-logout{ background: #e74c3c; color: white; margin-top: 20px; width: 100%; font-size: 14px; }
         
-        .order-group-card{ background: white; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #1a2a6c; cursor: pointer; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        .order-group-card{ background: #ffffff; border-radius: 12px; margin-bottom: 15px; border: 1px solid #bbc6f2; border-left: 7px solid #001a68; cursor: pointer; overflow: hidden; box-shadow: 0 6px 15px rgba(0,0,0,0.18); transition: 0.3s; }
         .order-group-card.new-order { border-left: 5px solid #3498db; background: #f0f7ff; }
         
         .group-header{ padding: 15px; display: flex; justify-content: space-between; align-items: center; }
@@ -81,7 +82,7 @@
         if(vSnap.exists()){
             localStorage.setItem('vendorMobile', mobile);
             showDashboard(vSnap.val().name, mobile);
-        } else { alert("ভেন্ডর পাওয়া যায়নি"); }
+        } else { alert("ভেন্ডর পাওয়া যায়নি"); }
     };
 
     function showDashboard(name, mobile) {
@@ -113,7 +114,7 @@
                 const order = item.data;
                 const orderKey = item.key;
                 const d = order.details || {};
-                const unitStr = d.unit || 'pc'; // Admin থেকে সেট করা ইউনিট
+                const unitStr = d.unit || 'pc'; 
                 
                 let hasPart = false;
                 let isBrandNew = true; 
@@ -122,14 +123,14 @@
                 order.breakdown.forEach((b, index) => {
                     if(b.vKey === vMobile) {
                         hasPart = true;
-                        const totalReq = parseFloat(b.qty) || 0;
-                        const confirmedQty = parseFloat(b.sentQty) || 0; // অফিসার যা কনফার্ম করেছে
-                        const waitingQty = parseFloat(b.waitingQty) || 0; // ভেন্ডর যা পাঠিয়েছে
+                        // সংখ্যা থেকে যেকোনো টেক্সট বা ইউনিট সরিয়ে শুধু পিওর নাম্বার নেয়া হয়েছে
+                        const totalReq = parseFloat(String(b.qty).replace(/[^\d.]/g, '')) || 0;
+                        const confirmedQty = parseFloat(String(b.sentQty).replace(/[^\d.]/g, '')) || 0; 
+                        const waitingQty = parseFloat(String(b.waitingQty).replace(/[^\d.]/g, '')) || 0; 
                         const remaining = totalReq - confirmedQty - waitingQty;
                         
                         if(confirmedQty > 0 || waitingQty > 0) isBrandNew = false;
 
-                        // হিস্ট্রি লগ (অফিসার কনফার্ম করার পর এখানে রিসিভড হিসেবে দেখাবে)
                         let historyLog = "";
                         if(b.deliveryLogs){
                             historyLog = Object.values(b.deliveryLogs).reverse().map(l => 
@@ -141,14 +142,14 @@
                             <div class="point-card">
                                 <span class="point-name">📍 ${b.pName}</span>
                                 <div class="qty-row">
-                                    <div>ডিমান্ড<br><b>${totalReq} ${unitStr}</b></div>
-                                    <div>কনফার্মড<br><b style="color:green">${confirmedQty} ${unitStr}</b></div>
-                                    <div>বাকি<br><b style="color:red">${remaining} ${unitStr}</b></div>
+                                    <div>ডিমান্ড<br><b>${totalReq}</b></div>
+                                    <div>কনফার্মড<br><b style="color:green">${confirmedQty}</b></div>
+                                    <div>বাকি<br><b style="color:red">${remaining}</b></div>
                                 </div>
                                 
                                 ${waitingQty > 0 ? `
                                     <div class="waiting-status">
-                                        ⏳ ${waitingQty} ${unitStr} Waiting for Confirmation
+                                        ⏳ ${waitingQty} Waiting for Confirmation
                                     </div>
                                 ` : ''}
 
@@ -182,7 +183,8 @@
                             <div class="breakdown-section" id="details-${orderKey}">
                                 <div class="admin-details">
                                     <b>Brand:</b> ${d.brand || 'N/A'} | <b>Program:</b> ${d.program || 'N/A'}<br>
-                                    <b>Unit:</b> ${unitStr} | <b>Specs:</b> ${d.specs || '-'}
+                                    <b>Piece/Set:</b> ${d.pieceSet || 'N/A'} | <b>Unit:</b> ${unitStr}<br>
+                                    <b>Specs:</b> ${d.specs || '-'}
                                 </div>
                                 ${breakdownsHTML}
                             </div>
@@ -213,7 +215,6 @@
             const snap = await get(orderRef);
             const currentData = snap.val();
             
-            // নতুন শিপমেন্ট সরাসরি waitingQty তে যোগ হবে, sentQty তে না
             const currentWaiting = parseFloat(currentData.waitingQty) || 0;
             const newWaiting = currentWaiting + shipAmount;
             
@@ -222,7 +223,7 @@
             updates[`grouped_orders/${orderKey}/breakdown/${index}/deliveryStatus`] = "Shipped";
             
             update(ref(db), updates).then(() => {
-                alert("শিপমেন্ট রিকোয়েস্ট পাঠানো হয়েছে। অফিসার কনফার্ম করলে ড্যাশবোর্ডে যোগ হবে।");
+                alert("শিপমেন্ট রিকোয়েস্ট পাঠানো হয়েছে। অফিসার কনফার্ম করলে ড্যাশবোর্ডে যোগ হবে।");
                 if(!isFull) document.getElementById(`box_${orderKey}_${index}`).style.display = 'none';
             });
         }

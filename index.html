@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        /* শুরুতে বডি লুকিয়ে রাখা হয়েছে সিকিউরিটির জন্য */
+        /* শুরুতে বডি লুকিয়ে রাখা হয়েছে সিকিউরিটির জন্য */
         body { display: none; font-family:'Segoe UI', Tahoma, sans-serif; background:#f0f2f5; margin:0; padding:0; }
         
         .navbar{ background:#1a2a6c; display:flex; justify-content:center; padding:10px; position:sticky; top:0; z-index:1000; box-shadow:0 2px 10px rgba(0,0,0,0.2); }
@@ -52,22 +52,17 @@
     (function() {
         const adminPass = "supply123@"; 
         const sessionKey = "admin_logged_in";
-
-        // সেশন চেক করা
         if (sessionStorage.getItem(sessionKey) === "true") {
             document.body.style.display = "block";
         } else {
             let authenticated = false;
             while (!authenticated) {
                 let userPass = prompt("অ্যাডমিন প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন:");
-                
-                // ইউজার যদি ক্যানসেল (Cancel) বাটনে ক্লিক করে
                 if (userPass === null) {
-                    alert("পাসওয়ার্ড ছাড়া প্রবেশ করা সম্ভব নয়।");
-                    location.reload(); // পেজ রিলোড হবে
+                    alert("পাসওয়ার্ড ছাড়া প্রবেশ করা সম্ভব নয়।");
+                    location.reload();
                     break;
                 }
-
                 if (userPass === adminPass) {
                     sessionStorage.setItem(sessionKey, "true");
                     document.body.style.display = "block";
@@ -113,9 +108,7 @@
     </div>
 </div>
 
-<!-- বাকি অর্ডার ম্যানেজমেন্ট এবং রিপোর্টস সেকশন (আপনার কোডের মতোই) -->
 <div id="order-mgmt" class="container">
-    <!-- আপনার অর্ডার ম্যানেজমেন্ট কোড এখানে... -->
     <div class="card">
         <h2>🏭 মাল্টি-ভেন্ডর ওয়ার্ক অর্ডার</h2>
         <input type="hidden" id="editOrderFirebaseKey">
@@ -134,7 +127,7 @@
             <div style="grid-column: span 2;"><label>Specifications</label><textarea id="detSpecs" placeholder="পণ্যর বিস্তারিত..." style="height:60px;"></textarea></div>
         </div>
 
-        <div id="remainingStatus" class="status-box">অবশিষ্ট ডিমান্ড: ০</div>
+        <div id="remainingStatus" class="status-box">অবशिष्ट ডিমান্ড: ০</div>
 
         <div style="background:#f9f9f9; padding:15px; border:1px dashed #bbb; border-radius:8px; margin-top:15px;">
             <select id="vSelect"><option value="">ভেন্ডর বেছে নিন</option></select>
@@ -216,7 +209,6 @@
 </div>
 
 <script type="module">
-/* Firebase and all logic remains exactly same as your code */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -254,7 +246,6 @@ onValue(ref(db, '/'), snap => {
     processReports();
 });
 
-// --- Management Functions ---
 window.savePoint = () => {
     const n = document.getElementById('pName').value, m = document.getElementById('pMobile').value, a = document.getElementById('pAddress').value;
     const editKey = document.getElementById('pEditKey').value;
@@ -284,13 +275,7 @@ function updatePointList(pts){
     if(!pts) return;
     Object.entries(pts).forEach(([k,v]) => {
         pointMap[k] = v;
-        tbody.innerHTML += `<tr>
-            <td>${v.name}</td><td>${v.mobile}</td><td>${v.address}</td>
-            <td>
-                <button class="btn btn-orange" onclick="editPoint('${k}')">Edit</button>
-                <button class="btn btn-red" onclick="deleteData('points','${k}')">Del</button>
-            </td>
-        </tr>`;
+        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td>${v.address}</td><td><button class="btn btn-orange" onclick="editPoint('${k}')">Edit</button><button class="btn btn-red" onclick="deleteData('points','${k}')">Del</button></td></tr>`;
         sel.innerHTML += `<option value="${k}">${v.name}</option>`;
         if(![...f.options].some(o => o.value === k)) f.innerHTML += `<option value="${k}">${v.name}</option>`;
     });
@@ -324,18 +309,11 @@ function updateVendorList(vns){
     if(!vns) return;
     Object.entries(vns).forEach(([k,v]) => {
         vendorMap[k] = v.name;
-        tbody.innerHTML += `<tr>
-            <td>${v.name}</td><td>${v.mobile}</td>
-            <td>
-                <button class="btn btn-orange" onclick="editVendor('${k}')">Edit</button>
-                <button class="btn btn-red" onclick="deleteData('vendors','${k}')">Del</button>
-            </td>
-        </tr>`;
+        tbody.innerHTML += `<tr><td>${v.name}</td><td>${v.mobile}</td><td><button class="btn btn-orange" onclick="editVendor('${k}')">Edit</button><button class="btn btn-red" onclick="deleteData('vendors','${k}')">Del</button></td></tr>`;
         sel.innerHTML += `<option value="${k}">${v.name}</option>`;
     });
 }
 
-// --- Order Logic ---
 window.autoFillAddress = () => { const k=document.getElementById('pSelect').value; document.getElementById('vLoc').value=pointMap[k]?pointMap[k].address:""; };
 window.updateRemaining = () => {
     const t = parseFloat(document.getElementById('totalDemand').value)||0;
@@ -376,11 +354,30 @@ window.finalSubmitOrder = () => {
     } else { alert("আইটেম, অর্ডার আইডি এবং ভেন্ডর কিউ নিশ্চিত করুন"); }
 };
 
+// --- ফিক্স করা ক্লিয়ার ফর্ম ---
 function clearOrderForm(){
-    orderQueue=[]; renderQueue();
+    orderQueue=[]; 
+    renderQueue();
     document.getElementById('editOrderFirebaseKey').value = "";
     document.getElementById('submitBtn').innerText = "অর্ডার কনফার্ম করুন";
-    ['orderItem','totalDemand','detOrderId','detUnit','detBrand','detProgram','detPieceSet','detSpecs','vDate'].forEach(id => document.getElementById(id).value = "");
+    
+    // আপনার সব ইনপুট বক্সের আইডি লিস্ট
+    const fields = [
+        'orderItem','totalDemand','detOrderId','detUnit',
+        'detBrand','detProgram','detPieceSet','detSpecs',
+        'vDate', 'splitQty', 'vLoc'
+    ];
+    
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = "";
+    });
+
+    // ড্রপডাউনগুলো রিসেট করা
+    if(document.getElementById('vSelect')) document.getElementById('vSelect').selectedIndex = 0;
+    if(document.getElementById('pSelect')) document.getElementById('pSelect').selectedIndex = 0;
+    if(document.getElementById('orderStatus')) document.getElementById('orderStatus').value = "Running";
+
     updateRemaining();
 }
 
@@ -389,16 +386,20 @@ window.editOrder = (k) => {
     document.getElementById('editOrderFirebaseKey').value = k;
     document.getElementById('orderItem').value = v.itemName;
     document.getElementById('totalDemand').value = v.totalDemand;
-    document.getElementById('detOrderId').value = v.details.orderId;
-    document.getElementById('detUnit').value = v.details.unit;
-    document.getElementById('detBrand').value = v.details.brand;
-    document.getElementById('detProgram').value = v.details.program;
-    document.getElementById('detPieceSet').value = v.details.pieceSet;
-    document.getElementById('detSpecs').value = v.details.specs;
+    
+    // ডিটেইলস ফিল্ডগুলো পপুলেট করা
+    document.getElementById('detOrderId').value = v.details?.orderId || "";
+    document.getElementById('detUnit').value = v.details?.unit || "";
+    document.getElementById('detBrand').value = v.details?.brand || "";
+    document.getElementById('detProgram').value = v.details?.program || "";
+    document.getElementById('detPieceSet').value = v.details?.pieceSet || "";
+    document.getElementById('detSpecs').value = v.details?.specs || "";
+    
     document.getElementById('vDate').value = v.deadline;
     document.getElementById('orderStatus').value = v.status;
     orderQueue = [...v.breakdown];
-    renderQueue(); updateRemaining();
+    renderQueue(); 
+    updateRemaining();
     document.getElementById('submitBtn').innerText = "Update Order";
     window.scrollTo(0,0);
 };
@@ -455,7 +456,12 @@ function processReports() {
             });
         });
     };
+
+
+    
     renderPointReport();
+
+    
 
     const oTbody = document.querySelector('#overallTable tbody'); oTbody.innerHTML = "";
     let summary = {};
