@@ -53,17 +53,29 @@
         const adminPass = "supply123@"; 
         const sessionKey = "admin_logged_in";
 
+        // সেশন চেক করা
         if (sessionStorage.getItem(sessionKey) === "true") {
             document.body.style.display = "block";
         } else {
-            let userPass = prompt("অ্যাডমিন প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন:");
-            if (userPass === adminPass) {
-                sessionStorage.setItem(sessionKey, "true");
-                document.body.style.display = "block";
-                alert("স্বাগতম, জাবির ভাই!");
-            } else {
-                alert("ভুল পাসওয়ার্ড!");
-                window.location.href = "officer.html"; 
+            let authenticated = false;
+            while (!authenticated) {
+                let userPass = prompt("অ্যাডমিন প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন:");
+                
+                // ইউজার যদি ক্যানসেল (Cancel) বাটনে ক্লিক করে
+                if (userPass === null) {
+                    alert("পাসওয়ার্ড ছাড়া প্রবেশ করা সম্ভব নয়।");
+                    location.reload(); // পেজ রিলোড হবে
+                    break;
+                }
+
+                if (userPass === adminPass) {
+                    sessionStorage.setItem(sessionKey, "true");
+                    document.body.style.display = "block";
+                    alert("স্বাগতম, স্যার !");
+                    authenticated = true;
+                } else {
+                    alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
+                }
             }
         }
     })();
