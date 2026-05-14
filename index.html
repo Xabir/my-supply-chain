@@ -45,6 +45,31 @@
 </head>
 <body>
 
+<!-- আপনার মূল কোডের ৫৭ নম্বর লাইন (<body>) এর ঠিক নিচে এটি পেস্ট করুন -->
+<body>
+
+<script>
+    (function() {
+        const adminPass = "jabir123"; // আপনার পাসওয়ার্ড এখানে লিখুন
+        const sessionKey = "admin_logged_in";
+
+        if (sessionStorage.getItem(sessionKey) !== "true") {
+            let userPass = prompt("অ্যাডমিন প্যানেলে প্রবেশ করতে পাসওয়ার্ড দিন:");
+            if (userPass === adminPass) {
+                sessionStorage.setItem(sessionKey, "true");
+                alert("স্বাগতম, জাবির ভাই!");
+            } else {
+                alert("ভুল পাসওয়ার্ড! অ্যাক্সেস রিফিউজড।");
+                window.location.href = "officer.html"; // ভুল হলে এই পেজে চলে যাবে
+            }
+        }
+    })();
+</script>
+
+<div class="navbar">
+    <button class="tab-btn active" onclick="openTab(event,'data-mgmt')">১. ডেটা ম্যানেজমেন্ট</button>
+    <!-- বাকি কোডগুলো আগের মতোই থাকবে... -->
+
 <div class="navbar">
     <button class="tab-btn active" onclick="openTab(event,'data-mgmt')">১. ডেটা ম্যানেজমেন্ট</button>
     <button class="tab-btn" onclick="openTab(event,'order-mgmt')">২. ওয়ার্ক অর্ডার</button>
