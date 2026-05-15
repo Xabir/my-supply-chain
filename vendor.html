@@ -9,13 +9,12 @@
         .container{ max-width: 500px; margin: auto; }
         .card{ background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
         h2{ color: #1a2a6c; text-align: center; margin-top: 0; }
-        input{ width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input, select{ width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .btn{ width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-blue{ background: #1a2a6c; color: white; width: 100%; padding: 14px; font-size: 16px; }
         .btn-green{ background: #27ae60; color: white; flex: 1; font-size: 13px; }
         .btn-orange{ background: #f39c12; color: white; flex: 1; font-size: 13px; }
         .btn-logout{ background: #e74c3c; color: white; margin-top: 20px; width: 100%; font-size: 14px; }
-        
         
         .order-group-card{ background: #ffffff; border-radius: 12px; margin-bottom: 15px; border: 1px solid #bbc6f2; border-left: 7px solid #001a68; cursor: pointer; overflow: hidden; box-shadow: 0 6px 15px rgba(0,0,0,0.18); transition: 0.3s; }
         .order-group-card.new-order { border-left: 5px solid #3498db; background: #f0f7ff; }
@@ -43,6 +42,9 @@
         .new-badge { font-size: 10px; background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
 
         #vDashboard{ display: none; }
+
+        /* ট্রান্সপোর্ট টাইপ সিলেকশন স্টাইল */
+        .transport-select { background: #e8f5e9; border: 1px solid #2e7d32; font-size: 14px; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -50,7 +52,7 @@
 <div class="container">
     <div class="card" id="loginBox">
         <h2>🚚 ভেন্ডর লগইন</h2>
-        <input type="text" id="vAuthMobile" placeholder="মোবাইল নম্বর" maxlength="11">
+        <input type="text" id="vAuthMobile" placeholder="মোাবাইল নম্বর" maxlength="11">
         <button class="btn btn-blue" onclick="vendorLogin()">প্রবেশ করুন</button>
     </div>
 
@@ -123,7 +125,6 @@
                 order.breakdown.forEach((b, index) => {
                     if(b.vKey === vMobile) {
                         hasPart = true;
-                        // সংখ্যা থেকে যেকোনো টেক্সট বা ইউনিট সরিয়ে শুধু পিওর নাম্বার নেয়া হয়েছে
                         const totalReq = parseFloat(String(b.qty).replace(/[^\d.]/g, '')) || 0;
                         const confirmedQty = parseFloat(String(b.sentQty).replace(/[^\d.]/g, '')) || 0; 
                         const waitingQty = parseFloat(String(b.waitingQty).replace(/[^\d.]/g, '')) || 0; 
@@ -154,6 +155,13 @@
                                 ` : ''}
 
                                 ${remaining > 0 ? `
+                                    <!-- ট্রান্সপোর্ট টাইপ ড্রপডাউন -->
+                                    <select id="transport_${orderKey}_${index}" class="transport-select" onclick="event.stopPropagation()">
+                                        <option value="">-- ট্রান্সপোর্ট টাইপ সিলেক্ট করুন --</option>
+                                        <option value="Courier">Courier</option>
+                                        <option value="Own Transport">Own Transport</option>
+                                    </select>
+
                                     <div class="action-btns">
                                         <button class="btn btn-green" onclick="event.stopPropagation(); shipOrder('${orderKey}', ${index}, ${remaining}, true, '${unitStr}')">Full Ship</button>
                                         <button class="btn btn-orange" onclick="event.stopPropagation(); showPartialBox('${orderKey}_${index}')">Partial Ship</button>
@@ -201,6 +209,10 @@
     };
 
     window.shipOrder = async (orderKey, index, remaining, isFull, unit) => {
+        // ট্রান্সপোর্ট টাইপ ভ্যালিডেশন
+        const tType = document.getElementById(`transport_${orderKey}_${index}`).value;
+        if(!tType) return alert("দয়া করে আগে ট্রান্সপোর্ট টাইপ সিলেক্ট করুন!");
+
         let shipAmount = 0;
         if(isFull) shipAmount = remaining;
         else {
@@ -210,7 +222,7 @@
 
         if(shipAmount <= 0 || shipAmount > remaining) return alert("সঠিক পরিমাণ দিন");
 
-        if(confirm(`${shipAmount} ${unit} শিপমেন্ট পাঠাচ্ছেন? এটি অফিসারের কনফার্মেশনের পর আপডেট হবে।`)) {
+        if(confirm(`${shipAmount} ${unit} (${tType}) শিপমেন্ট পাঠাচ্ছেন? এটি অফিসারের কনফার্মেশনের পর আপডেট হবে।`)) {
             const orderRef = ref(db, `grouped_orders/${orderKey}/breakdown/${index}`);
             const snap = await get(orderRef);
             const currentData = snap.val();
@@ -221,6 +233,7 @@
             const updates = {};
             updates[`grouped_orders/${orderKey}/breakdown/${index}/waitingQty`] = newWaiting;
             updates[`grouped_orders/${orderKey}/breakdown/${index}/deliveryStatus`] = "Shipped";
+            updates[`grouped_orders/${orderKey}/breakdown/${index}/transportType`] = tType; // ফায়ারবেসে সেভ হচ্ছে
             
             update(ref(db), updates).then(() => {
                 alert("শিপমেন্ট রিকোয়েস্ট পাঠানো হয়েছে। অফিসার কনফার্ম করলে ড্যাশবোর্ডে যোগ হবে।");
