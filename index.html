@@ -119,7 +119,7 @@
 
         <h3 style="margin-top: 15px; font-size: 16px;">Details:</h3>
         <div class="details-grid">
-            <div style="grid-column: span 2;"><label>Order ID</label><input type="text" id="detOrderId" placeholder="ORD-101"/></div>
+            <div style="grid-column: span 2;"><label>Order ID</label><input type="text" id="detOrderId" placeholder="#AKT/BD/"/></div>
             <div><label>Business Unit</label><input type="text" id="detUnit" placeholder="যেমন: AKTCL"/></div>
             <div><label>Brand Name</label><input type="text" id="detBrand" placeholder="ব্র্যান্ডের নাম"/></div>
             <div><label>Program</label><input type="text" id="detProgram" placeholder="প্রোগ্রাম নাম"/></div>
@@ -127,7 +127,7 @@
             <div style="grid-column: span 2;"><label>Specifications</label><textarea id="detSpecs" placeholder="পণ্যর বিস্তারিত..." style="height:60px;"></textarea></div>
         </div>
 
-        <div id="remainingStatus" class="status-box">অবशिष्ट ডিমান্ড: ০</div>
+        <div id="remainingStatus" class="status-box">অবশিষ্ট ডিমান্ড: ০</div>
 
         <div style="background:#f9f9f9; padding:15px; border:1px dashed #bbb; border-radius:8px; margin-top:15px;">
             <select id="vSelect"><option value="">ভেন্ডর বেছে নিন</option></select>
@@ -328,6 +328,13 @@ window.removeFromQueue = (index) => {
     updateRemaining();
 };
 
+// ভুল করে অ্যাড করা আইটেম কিউ থেকে ডিলিট করার জন্য
+window.removeFromQueue = (index) => {
+    orderQueue.splice(index, 1); // সিরিয়াল অনুযায়ী কিউ থেকে ডাটা বাদ দিবে
+    renderQueue();               // টেবিল আপডেট করবে
+    updateRemaining();           // নিচের হিসাব (Remaining) আপডেট করবে
+};
+
 // ২. কিউতে নতুন আইটেম যোগ করার আপডেট করা ফাংশন
 window.addToOrderQueue = () => {
     const t = parseFloat(document.getElementById('totalDemand').value) || 0;
@@ -335,41 +342,56 @@ window.addToOrderQueue = () => {
     const vK = document.getElementById('vSelect').value;
     const pK = document.getElementById('pSelect').value;
     
-    // বর্তমান কিউতে মোট কত মাল যোগ করা হয়েছে তার হিসাব
+    // কিউতে এই মুহূর্তে মোট কত মাল আছে তা গুনে বের করা
     const currentTotalInQueue = orderQueue.reduce((sum, item) => sum + item.qty, 0);
 
     if (t && vK && pK && q > 0) {
-        // চেক করি: নতুন পরিমাণ যোগ করলে কি ডিমান্ড ক্রস করবে? 
+        // অতিরিক্ত মাল এন্ট্রি দেওয়া বন্ধ করার লজিক
         if ((currentTotalInQueue + q) > t) {
-            alert("দুঃখিত! ডিমান্ডের বেশি অর্ডার দেওয়া যাবে না। বাকি আছে মাত্র: " + (t - currentTotalInQueue));
+            alert("দুঃখিত! ডিমান্ডের চেয়ে বেশি মাল দেওয়া সম্ভব না। বাকি আছে মাত্র: " + (t - currentTotalInQueue));
             return; 
         }
 
+        // কিউতে ডাটা ঢুকানো
         orderQueue.push({ vKey: vK, vName: vendorMap[vK], pKey: pK, pName: pointMap[pK].name, qty: q });
+        
+        // --- বক্সগুলো খালি করার ম্যাজিক লাইন ---
+        document.getElementById('pSelect').selectedIndex = 0; // পয়েন্ট ড্রপডাউন প্রথম অপশনে ফিরে যাবে
+        document.getElementById('splitQty').value = "";      // পরিমাণ বক্স একদম খালি
+        document.getElementById('vLoc').value = "";          // অ্যাড্রেস বক্স খালি
+
         renderQueue(); 
         updateRemaining();
     } else {
-        alert("ভেন্ডর, পয়েন্ট এবং পরিমাণ সঠিকভাবে দিন");
+        alert("ভাই, ভেন্ডর, পয়েন্ট এবং পরিমাণ ঠিকমতো দিন!");
     }
 };
 
 // ৩. কিউ টেবিল দেখানোর ফাংশন (ক্রস বাটন ফিক্স সহ)
 function renderQueue(){
     const b = document.querySelector('#tempQueueTable tbody'); 
-    b.innerHTML = "";
+    b.innerHTML = ""; // টেবিল আগে পরিষ্কার করে নেওয়া
     orderQueue.forEach((item, i) => { 
         b.innerHTML += `<tr>
             <td>${item.vName}</td>
             <td>${item.pName}</td>
             <td>${item.qty}</td>
-            <td><button class="btn btn-red" onclick="removeFromQueue(${i})">X</button></td>
+            <td style="text-align:center">
+                <!-- লাল রঙের ক্রস বাটন যা উপরের removeFromQueue ফাংশনকে কল করবে -->
+                <button class="btn" style="background:red; color:white; padding: 2px 8px; cursor:pointer" onclick="removeFromQueue(${i})">X</button>
+            </td>
         </tr>`; 
     });
 }
 
 window.finalSubmitOrder = () => {
-    const item = document.getElementById('orderItem').value, t = parseFloat(document.getElementById('totalDemand').value);
+    const item = document.getElementById('orderItem').value;
+    const t = parseFloat(document.getElementById('totalDemand').value);
     const updateKey = document.getElementById('editOrderFirebaseKey').value;
+    
+    // তারিখটি চেক করার জন্য ভেরিয়েবলে নিলাম
+    const deadline = document.getElementById('vDate').value; 
+
     const details = { 
         orderId: document.getElementById('detOrderId').value, 
         unit: document.getElementById('detUnit').value, 
@@ -378,14 +400,29 @@ window.finalSubmitOrder = () => {
         pieceSet: document.getElementById('detPieceSet').value, 
         specs: document.getElementById('detSpecs').value 
     };
-    if(item && orderQueue.length > 0 && details.orderId) {
-        const data = { itemName:item, totalDemand:t, details: details, deadline:document.getElementById('vDate').value, status:document.getElementById('orderStatus').value, timestamp: new Date().toLocaleString('bn-BD'), breakdown: orderQueue };
+
+    // এখানে সব চেক করা হচ্ছে, বিশেষ করে তারিখ (deadline)
+    if(item && orderQueue.length > 0 && details.orderId && deadline) {
+        const data = { 
+            itemName: item, 
+            totalDemand: t, 
+            details: details, 
+            deadline: deadline, 
+            status: document.getElementById('orderStatus').value, 
+            timestamp: new Date().toLocaleString('bn-BD'), 
+            breakdown: orderQueue 
+        };
+        
         const orderRef = updateKey ? ref(db, 'grouped_orders/' + updateKey) : push(ref(db, 'grouped_orders'));
+        
         set(orderRef, data).then(() => { 
-            alert(updateKey ? "অর্ডার আপডেট হয়েছে" : "অর্ডার কনফার্ম হয়েছে"); 
+            alert(updateKey ? "অর্ডার আপডেট হয়েছে" : "অর্ডার কনফার্ম হয়েছে"); 
             clearOrderForm();
         });
-    } else { alert("আইটেম, অর্ডার আইডি এবং ভেন্ডর কিউ নিশ্চিত করুন"); }
+    } else { 
+        // যদি কেউ তারিখ বা অন্য কিছু বাদ দেয়
+        alert("সাবধান! আইটেম নাম, অর্ডার আইডি, ভেন্ডর লিস্ট এবং তারিখ—সবগুলো ঘর পূরণ করতে হবে।"); 
+    }
 };
 
 // --- ফিক্স করা ক্লিয়ার ফর্ম ---
