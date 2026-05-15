@@ -120,7 +120,7 @@
         <h3 style="margin-top: 15px; font-size: 16px;">Details:</h3>
         <div class="details-grid">
             <div style="grid-column: span 2;"><label>Order ID</label><input type="text" id="detOrderId" placeholder="ORD-101"/></div>
-            <div><label>Unit</label><input type="text" id="detUnit" placeholder="যেমন: Kg/Pcs"/></div>
+            <div><label>Business Unit</label><input type="text" id="detUnit" placeholder="যেমন: AKTCL"/></div>
             <div><label>Brand Name</label><input type="text" id="detBrand" placeholder="ব্র্যান্ডের নাম"/></div>
             <div><label>Program</label><input type="text" id="detProgram" placeholder="প্রোগ্রাম নাম"/></div>
             <div><label>Piece/Set</label><input type="text" id="detPieceSet" placeholder="পরিমাণ টাইপ"/></div>
@@ -320,17 +320,51 @@ window.updateRemaining = () => {
     const d = orderQueue.reduce((s,i)=>s+i.qty, 0);
     document.getElementById('remainingStatus').innerText = `অবশিষ্ট ডিমান্ড: ${t-d}`;
 };
+
+// ১. কিউ থেকে আইটেম ডিলিট করার নতুন ফাংশন
+window.removeFromQueue = (index) => {
+    orderQueue.splice(index, 1);
+    renderQueue();
+    updateRemaining();
+};
+
+// ২. কিউতে নতুন আইটেম যোগ করার আপডেট করা ফাংশন
 window.addToOrderQueue = () => {
-    const t = parseFloat(document.getElementById('totalDemand').value)||0, q = parseFloat(document.getElementById('splitQty').value)||0;
-    const vK = document.getElementById('vSelect').value, pK = document.getElementById('pSelect').value;
-    if(t && vK && pK && q > 0) {
-        orderQueue.push({ vKey:vK, vName:vendorMap[vK], pKey:pK, pName:pointMap[pK].name, qty:q });
-        renderQueue(); updateRemaining();
+    const t = parseFloat(document.getElementById('totalDemand').value) || 0;
+    const q = parseFloat(document.getElementById('splitQty').value) || 0;
+    const vK = document.getElementById('vSelect').value;
+    const pK = document.getElementById('pSelect').value;
+    
+    // বর্তমান কিউতে মোট কত মাল যোগ করা হয়েছে তার হিসাব
+    const currentTotalInQueue = orderQueue.reduce((sum, item) => sum + item.qty, 0);
+
+    if (t && vK && pK && q > 0) {
+        // চেক করি: নতুন পরিমাণ যোগ করলে কি ডিমান্ড ক্রস করবে? 
+        if ((currentTotalInQueue + q) > t) {
+            alert("দুঃখিত! ডিমান্ডের বেশি অর্ডার দেওয়া যাবে না। বাকি আছে মাত্র: " + (t - currentTotalInQueue));
+            return; 
+        }
+
+        orderQueue.push({ vKey: vK, vName: vendorMap[vK], pKey: pK, pName: pointMap[pK].name, qty: q });
+        renderQueue(); 
+        updateRemaining();
+    } else {
+        alert("ভেন্ডর, পয়েন্ট এবং পরিমাণ সঠিকভাবে দিন");
     }
 };
+
+// ৩. কিউ টেবিল দেখানোর ফাংশন (ক্রস বাটন ফিক্স সহ)
 function renderQueue(){
-    const b = document.querySelector('#tempQueueTable tbody'); b.innerHTML = "";
-    orderQueue.forEach((item, i) => { b.innerHTML += `<tr><td>${item.vName}</td><td>${item.pName}</td><td>${item.qty}</td><td><button onclick="orderQueue.splice(${i},1);renderQueue();updateRemaining();">X</button></td></tr>`; });
+    const b = document.querySelector('#tempQueueTable tbody'); 
+    b.innerHTML = "";
+    orderQueue.forEach((item, i) => { 
+        b.innerHTML += `<tr>
+            <td>${item.vName}</td>
+            <td>${item.pName}</td>
+            <td>${item.qty}</td>
+            <td><button class="btn btn-red" onclick="removeFromQueue(${i})">X</button></td>
+        </tr>`; 
+    });
 }
 
 window.finalSubmitOrder = () => {
